@@ -4,6 +4,7 @@
 #include "DarkArrowProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Engine/GameEngine.h"
 
 ADarkArrowProjectile::ADarkArrowProjectile()
 {
@@ -23,13 +24,12 @@ ADarkArrowProjectile::ADarkArrowProjectile()
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp;
-	ProjectileMovement->InitialSpeed = 1000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->MaxSpeed = 5000.f;
+	ProjectileMovement->InitialSpeed = 5000.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = false;
 
 
-	// Die after 3 seconds by default
 	InitialLifeSpan = 0.0f;
 
 }
@@ -39,8 +39,16 @@ void ADarkArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 	// Only add impulse and destroy projectile if we hit a physics
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
 	{
-
+		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Hit"));
+		AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Do Something"));
 	}
 }
 
 
+void ADarkArrowProjectile::Initialize(float PartVelocity) {
+	FVector speed = ProjectileMovement->Velocity;
+	ProjectileMovement->Velocity = speed * PartVelocity ;
+	ProjectileMovement->UpdateComponentVelocity();
+}

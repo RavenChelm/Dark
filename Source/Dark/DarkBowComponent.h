@@ -11,7 +11,6 @@
  */
 class ADarkCharacter;
 
-
 UCLASS(Blueprintable, BlueprintType, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class DARK_API UDarkBowComponent : public USkeletalMeshComponent
 {

@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "DarkCharacter.h"
-#include "DarkProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,7 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
-#include "CustomCharacterMovementComponent.h"
+#include "MovementSystem/CustomCharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -63,27 +62,22 @@ void ADarkCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ADarkCharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ADarkCharacter::StopJumping);
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ADarkCharacter::Move);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADarkCharacter::Look);
 
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ADarkCharacter::StartSprint); // research about events Not working now
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Canceled, this, &ADarkCharacter::StopSprint);
+		//Sprint
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ADarkCharacter::StartSprint); 
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ADarkCharacter::StopSprint);
+
+		//Crouch
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ADarkCharacter::StartCrouch);
 
 
-		//PlayerInputComponent->BindAction("Slide", IE_Pressed, this, &ADarkCharacter::StartSlide);
-		//PlayerInputComponent->BindAction("Slide", IE_Released, this, &ADarkCharacter::StopSlide);
-
-		//PlayerInputComponent->BindAction("WallRun", IE_Pressed, this, &ADarkCharacter::StartWallRun);
-		//PlayerInputComponent->BindAction("WallRun", IE_Released, this, &ADarkCharacter::StopWallRun);
-
-		//PlayerInputComponent->BindAction("Climb", IE_Pressed, this, &ADarkCharacter::StartClimb);
-		//PlayerInputComponent->BindAction("Climb", IE_Released, this, &ADarkCharacter::StopClimb);
 	}
 	else
 	{
@@ -94,12 +88,9 @@ void ADarkCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 void ADarkCharacter::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
 	if (Controller != nullptr)
 	{
-		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
 	}
@@ -107,77 +98,44 @@ void ADarkCharacter::Move(const FInputActionValue& Value)
 
 void ADarkCharacter::Look(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
 	if (Controller != nullptr)
 	{
-		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
 
-void ADarkCharacter::StartSprint(const FInputActionValue& Value)
+void ADarkCharacter::StartSprint()
 {
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartSprint();
-	}
+	OnSprintStart.Broadcast();
 }
 
-void ADarkCharacter::StopSprint(const FInputActionValue& Value)
+void ADarkCharacter::StopSprint()
 {
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StopSprint();
-	}
+	OnSprintStop.Broadcast();
 }
 
-void ADarkCharacter::StartSlide(const FInputActionValue& Value)
+void ADarkCharacter::StartCrouch()
 {
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartSlide();
-	}
+	// Crouch();
+	OnCrouch.Broadcast();
 }
 
-void ADarkCharacter::StopSlide(const FInputActionValue& Value)
+void ADarkCharacter::StopCrouch()
 {
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartSlide();
-	}
+	// UnCrouch();
+	OnCrouch.Broadcast();
 }
 
-void ADarkCharacter::StartWallRun(const FInputActionValue & Value)
+void ADarkCharacter::Jump()
 {
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartWallRun();
-	}
+	OnJumpStart.Broadcast();
+	Super::Jump();
 }
 
-void ADarkCharacter::StopWallRun(const FInputActionValue & Value)
+void ADarkCharacter::StopJumping()
 {
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartWallRun();
-	}
-}
-
-void ADarkCharacter::StartClimb(const FInputActionValue & Value)
-{
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartClimb();
-	}
-}
-
-void ADarkCharacter::StopClimb(const FInputActionValue & Value)
-{
-	if (UCustomCharacterMovementComponent* CustomMovement = GetCustomMovement())
-	{
-		CustomMovement->StartClimb();
-	}
+	// OnJumpStop.Broadcast();
+	Super::StopJumping();
 }

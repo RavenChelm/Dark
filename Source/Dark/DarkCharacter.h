@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
-#include "CustomCharacterMovementComponent.h"
+#include "Camera/CameraComponent.h"
+#include "MovementSystem/CustomCharacterMovementComponent.h"
 #include "DarkCharacter.generated.h"
 
 class UInputComponent;
@@ -46,6 +47,10 @@ class ADarkCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction;
 
+	/** Crouch Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction;
+	
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
@@ -54,10 +59,59 @@ class ADarkCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	UCustomCharacterMovementComponent* CustomCharacterMovementComponent;
 
+	
+
 public:
 	ADarkCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSprintStart);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSprintStop);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCrouch);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWallRunStart);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWallRunStop);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSlideStart);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSlideStop);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbLedgeStart);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbLedgeStop);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbRopeStart);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbRopeStop);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumpStart);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumpStop);
 
 
+	UPROPERTY(BlueprintAssignable)
+	FOnSprintStart OnSprintStart;
+	UPROPERTY(BlueprintAssignable)
+	FOnSprintStop OnSprintStop;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnCrouch OnCrouch;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnWallRunStart OnWallRunStart;
+	UPROPERTY(BlueprintAssignable)
+	FOnWallRunStop OnWallRunStop;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSlideStart OnSlideStart;
+	UPROPERTY(BlueprintAssignable)
+	FOnSlideStop OnSlideStop;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnClimbLedgeStart OnClimbLedgeStart;
+	UPROPERTY(BlueprintAssignable)
+	FOnClimbLedgeStop OnClimbLedgeStop;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnClimbRopeStart OnClimbRopeStart;
+	UPROPERTY(BlueprintAssignable)
+	FOnClimbRopeStop OnClimbRopeStop;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnJumpStart OnJumpStart;
+	UPROPERTY(BlueprintAssignable)
+	FOnJumpStop OnJumpStop;
+	
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -65,25 +119,25 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
-	void StartSprint(const FInputActionValue& Value);
-	void StopSprint(const FInputActionValue& Value);
-	void StartSlide(const FInputActionValue& Value);
-	void StopSlide(const FInputActionValue& Value);
-	void StartWallRun(const FInputActionValue& Value);
-	void StopWallRun(const FInputActionValue& Value);
-	void StartClimb(const FInputActionValue& Value);
-	void StopClimb(const FInputActionValue& Value);
+	void StartSprint();
+	void StopSprint();
+	void StartCrouch();
+	void StopCrouch();
+	virtual void Jump() override;
+	virtual void StopJumping() override;
 
-protected:
+
 	// APawn interface
 	virtual void NotifyControllerChanged() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
+
+//Get methods
 public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 	UCustomCharacterMovementComponent* GetCustomMovement() const { return CustomCharacterMovementComponent; };
-
+	//TODO: Get Capsule
 };
 

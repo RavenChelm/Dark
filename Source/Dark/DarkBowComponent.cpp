@@ -3,7 +3,7 @@
 
 #include "DarkBowComponent.h"
 #include "DarkCharacter.h"
-#include "DarkArrowProjectile.h"
+#include "Arrow/DarkArrowProjectile.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,6 +12,7 @@
 #include "Animation/AnimInstance.h"
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
+#include "Engine/GameEngine.h"
 
 UDarkBowComponent::UDarkBowComponent()
 {
@@ -44,9 +45,9 @@ bool UDarkBowComponent::AttachWeapon(ADarkCharacter* TargetCharacter)
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
 			// Fire
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Ongoing, this, &UDarkBowComponent::PullArrow);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UDarkBowComponent::PullArrow);
 			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &UDarkBowComponent::ShootArrow);
-
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &UDarkBowComponent::ShootArrow);
 		}
 	}
 
@@ -57,13 +58,19 @@ void UDarkBowComponent::PullArrow()
 {
 	if (Character == nullptr || Character->GetController() == nullptr) return;
 
-	if (ArrowForceCurrent < ArrowForceMax) ArrowForceCurrent += ArrowForceIncrement;
+	if (ArrowForceCurrent < ArrowForceMax) {
+		ArrowForceCurrent += ArrowForceIncrement * GetWorld()->DeltaTimeSeconds;
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Pulling"));
+	}
 
-	if (ArrowForceCurrent > ArrowForceMax) ArrowForceCurrent = ArrowForceMax;
+	if (ArrowForceCurrent > ArrowForceMax) {
+		ArrowForceCurrent = ArrowForceMax;
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Max Force"));
+	}
 
 	//start shaking/pull animation and sound
 }
-
+	
 void UDarkBowComponent::ShootArrow()
 {
 	if (Character == nullptr || Character->GetController() == nullptr)
@@ -86,7 +93,10 @@ void UDarkBowComponent::ShootArrow()
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 			// Spawn the projectile at the muzzle
-			World->SpawnActor<ADarkArrowProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			ADarkArrowProjectile* Arrow = World->SpawnActor<ADarkArrowProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+			Arrow->Initialize(ArrowForceCurrent);
+			ArrowForceCurrent = 0;
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Fire"));
 		}
 	}
 
