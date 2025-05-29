@@ -6,7 +6,6 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "Camera/CameraComponent.h"
-#include "MovementSystem/CustomCharacterMovementComponent.h"
 #include "DarkCharacter.generated.h"
 
 class UInputComponent;
@@ -14,6 +13,11 @@ class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
+class UPhysicsHandleComponent;
+class UCustomCharacterMovementComponent;
+class UHandsControllerComponent;
+class USwordSkeletalMeshComponent;
+class UCrossbowSkeletalMeshComponent;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -35,31 +39,43 @@ class ADarkCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	/** Jump Input Action */
+	/* Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
-
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
-
-	/** Sprint Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction;
-
-	/** Crouch Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* CrouchAction;
-	
-	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
+	UInputAction* LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AttackAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LongInteractAction;
 	
-	/** Custom Movement Component with advanced movement*/
+	/** Custom Movement Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	UCustomCharacterMovementComponent* CustomCharacterMovementComponent;
 
-	
+	/** Grab Point Scene  Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interact", meta = (AllowPrivateAccess = "true"))
+	USceneComponent* GrabPoint;
+
+	/** Hands Controller Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	UHandsControllerComponent* HandsController;
+
+	/** Crossbow Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	UCrossbowSkeletalMeshComponent* CrossbowComponent;
+
+	/** Sword Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
+	USwordSkeletalMeshComponent* SwordComponent;
 
 public:
 	ADarkCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
@@ -67,62 +83,36 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSprintStart);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSprintStop);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCrouch);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWallRunStart);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWallRunStop);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSlideStart);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSlideStop);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbLedgeStart);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbLedgeStop);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbRopeStart);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnClimbRopeStop);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumpStart);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumpStop);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLongInteract);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttack);
 
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSprintStart OnSprintStart;
 	UPROPERTY(BlueprintAssignable)
 	FOnSprintStop OnSprintStop;
-
 	UPROPERTY(BlueprintAssignable)
 	FOnCrouch OnCrouch;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnWallRunStart OnWallRunStart;
-	UPROPERTY(BlueprintAssignable)
-	FOnWallRunStop OnWallRunStop;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnSlideStart OnSlideStart;
-	UPROPERTY(BlueprintAssignable)
-	FOnSlideStop OnSlideStop;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnClimbLedgeStart OnClimbLedgeStart;
-	UPROPERTY(BlueprintAssignable)
-	FOnClimbLedgeStop OnClimbLedgeStop;
-
-	UPROPERTY(BlueprintAssignable)
-	FOnClimbRopeStart OnClimbRopeStart;
-	UPROPERTY(BlueprintAssignable)
-	FOnClimbRopeStop OnClimbRopeStop;
-	
 	UPROPERTY(BlueprintAssignable)
 	FOnJumpStart OnJumpStart;
 	UPROPERTY(BlueprintAssignable)
-	FOnJumpStop OnJumpStop;
+	FOnInteract OnInteract;
+	UPROPERTY(BlueprintAssignable)
+	FOnAttack OnAttack;
+	UPROPERTY(BlueprintAssignable)
+	FOnAttack OnLongInteract;
 	
 protected:
-	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
+	void StartInteract();
+	void StartLongInteract();
 	void StartSprint();
 	void StopSprint();
 	void StartCrouch();
-	void StopCrouch();
+	void StartAttack();
 	virtual void Jump() override;
 	virtual void StopJumping() override;
 
@@ -138,6 +128,9 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 	UCustomCharacterMovementComponent* GetCustomMovement() const { return CustomCharacterMovementComponent; };
-	//TODO: Get Capsule
+	UHandsControllerComponent* GetHandsController() const { return HandsController; };
+	USceneComponent* GetGrabPoint() const { return GrabPoint; };
+	UCrossbowSkeletalMeshComponent* GetCrossbowComponent() const {return CrossbowComponent;};
+	USwordSkeletalMeshComponent* GetSwordComponent() const {return SwordComponent;};
 };
 

@@ -10,8 +10,11 @@ void USlideState::EnterState(UCustomCharacterMovementComponent* MovementComponen
 	
 	
 	MovementComponent->MaxWalkSpeed = MovementComponent->SlideMaxSpeed;
-	MovementComponent->MaxAcceleration = MovementComponent->SlideMaxAcceleration;
-	MovementComponent->MaxAcceleration = MovementComponent->CrouchMaxAcceleration;
+	// if (MovementComponent->EnableAcceleration)
+	// { //Что здесь происходит? зачем я это сделал? нужно оставить только SlideMaxAcceleration
+		MovementComponent->MaxAcceleration = MovementComponent->CrouchMaxAcceleration;
+		// MovementComponent->MaxAcceleration = MovementComponent->CrouchMaxAcceleration;
+	// }
 	MovementComponent->GroundFriction = MovementComponent->GroundFrictionSlide;
 	MovementComponent->BrakingDecelerationWalking = MovementComponent->BrakingDecelerationSlide;
 
@@ -43,4 +46,9 @@ void USlideState::ExitState(UCustomCharacterMovementComponent* MovementComponent
 	MovementComponent->SlideTimelineComponent->Stop();
 	MovementComponent->GroundFriction = MovementComponent->GeneralGroundFriction;
 	MovementComponent->BrakingDecelerationWalking = MovementComponent->GeneralBrakingDeceleration;
+	// if (MovementComponent->EnableAcceleration)
+	// { //Что здесь происходит? зачем я это сделал? нужно оставить только SlideMaxAcceleration
+		MovementComponent->MaxAcceleration = MovementComponent->ComonAcceleration;
+		// MovementComponent->MaxAcceleration = MovementComponent->CrouchMaxAcceleration;
+	// }
 }

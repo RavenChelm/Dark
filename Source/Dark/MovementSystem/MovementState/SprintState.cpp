@@ -7,7 +7,10 @@ void USprintState::EnterState(UCustomCharacterMovementComponent* MovementCompone
 {
 	// MovementComponent->SetMovementMode(MOVE_Custom, static_cast<uint8>(ECustomMovementMode::MOVE_Sprint));
 	MovementComponent->MaxWalkSpeed = MovementComponent->SprintMaxSpeed;
-	MovementComponent->MaxAcceleration = MovementComponent->SprintMaxAcceleration;
+	if (MovementComponent->EnableAcceleration)
+	{
+		MovementComponent->MaxAcceleration = MovementComponent->SprintMaxAcceleration;
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Enter Sprint state"));
 
 }

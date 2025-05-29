@@ -7,7 +7,10 @@ void UWalkState::EnterState(UCustomCharacterMovementComponent* MovementComponent
 {
 	// MovementComponent->SetMovementMode(MOVE_Custom, static_cast<uint8>(ECustomMovementMode::MOVE_Walk));
 	MovementComponent->MaxWalkSpeed = MovementComponent->WalkMaxSpeed;
-	MovementComponent->MaxAcceleration = MovementComponent->WalkMaxAcceleration;
+	if (MovementComponent->EnableAcceleration)
+	{
+		MovementComponent->MaxAcceleration = MovementComponent->WalkMaxAcceleration;
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Enter Walk state"));
 }
 

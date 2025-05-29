@@ -7,9 +7,9 @@ void UClimbLadgeState::EnterState(UCustomCharacterMovementComponent* MovementCom
 {
 	MovementComponent->GetCapsule()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Velocity = MovementComponent->Velocity;
+	Velocity.Z = 0;
 	MovementComponent->ClimbTimelineComponent->PlayFromStart();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Enter Climb Ladge state"));
-
 }
 
 void UClimbLadgeState::TickState(UCustomCharacterMovementComponent* MovementComponent, float DeltaTime)

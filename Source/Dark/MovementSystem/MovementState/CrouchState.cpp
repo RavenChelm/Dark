@@ -7,7 +7,10 @@
 void UCrouchState::EnterState(UCustomCharacterMovementComponent* MovementComponent)
 {
 	MovementComponent->MaxWalkSpeed = MovementComponent->CrouchMaxSpeed;
-	MovementComponent->MaxAcceleration = MovementComponent->CrouchMaxAcceleration;
+	if (MovementComponent->EnableAcceleration)
+	{
+		MovementComponent->MaxAcceleration = MovementComponent->CrouchMaxAcceleration;
+	}
 	MovementComponent->CrouchTimelineComponent->Play();
 	OnState = true;
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Enter Crouch state"));

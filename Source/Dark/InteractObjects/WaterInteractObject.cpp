@@ -20,4 +20,9 @@ void UWaterInteractObject::ActStateDown() const
 	if(ParticleSystemComponent) ParticleSystemComponent->Deactivate();
 }
 
+void UWaterInteractObject::Interact_Implementation(const AActor* Other)
+{
+	if (ParticleSystemComponent) ParticleSystemComponent->Activate();
+}
+
 

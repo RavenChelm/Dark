@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DarkArrowProjectile.h"
+#include "ArrowProjectile.h"
 #include "FireArrowProjectile.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class DARK_API AFireArrowProjectile : public ADarkArrowProjectile
+class DARK_API AFireArrowProjectile : public AArrowProjectile
 {
 	GENERATED_BODY()
 public:

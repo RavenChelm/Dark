@@ -10,6 +10,7 @@
 #include "MovementState/SprintState.h"
 #include "MovementState/WalkState.h"
 #include "MovementState/ClimbLadgeState.h"
+#include "MovementState/JumpOverObstacleState.h"
 #include "MovementState/JumpState.h"
 #include "MovementState/ClimbRopeState.h"
 #include "MovementState/CrouchState.h"
@@ -62,7 +63,8 @@ void UCustomCharacterMovementComponent::BeginPlay()
 
 	ClimbLadgeState = NewObject<UClimbLadgeState>(this);
 	ClimbRopeState = NewObject<UClimbRopeState>(this);
-
+	JumpOverObstacleState = NewObject<UJumpOverObstacleState>(this);
+	
 	CrouchState = NewObject<UCrouchState>(this);
 	SlideState = NewObject<USlideState>(this);
 
@@ -77,12 +79,16 @@ void UCustomCharacterMovementComponent::BeginPlay()
 		Character->OnSprintStart.AddDynamic(this, &UCustomCharacterMovementComponent::HandleSprintStart);
 		Character->OnSprintStop.AddDynamic(this, &UCustomCharacterMovementComponent::HandleSprintStop);
 		Character->OnJumpStart.AddDynamic(this, &UCustomCharacterMovementComponent::HandleJumpStart);
-		Character->OnJumpStop.AddDynamic(this, &UCustomCharacterMovementComponent::HandleJumpStop);
+		// Character->OnJumpStop.AddDynamic(this, &UCustomCharacterMovementComponent::HandleJumpStop);
 		Character->OnCrouch.AddDynamic(this, &UCustomCharacterMovementComponent::HandleCrouch);
+		Capsule = Character->GetComponentByClass<UCapsuleComponent>();
+		BaseEyeHeight = Character->GetFirstPersonCameraComponent()->GetRelativeLocation().Z;
 	}
 
-	Capsule = Character->GetComponentByClass<UCapsuleComponent>();
-	BaseEyeHeight = Character->GetFirstPersonCameraComponent()->GetRelativeLocation().Z;
+	if (!EnableAcceleration)
+	{
+		MaxAcceleration = ComonAcceleration;
+	}
 }
 
 void UCustomCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
@@ -124,6 +130,8 @@ UMovementState* UCustomCharacterMovementComponent::GetState(const ECustomMovemen
 		return ClimbLadgeState;
 	case ECustomMovementMode::MOVE_ClimbRope:
 		return nullptr /*ClimbLadgeRope*/;
+	case ECustomMovementMode::MOVE_JumpOverObstacle:
+		return JumpOverObstacleState;
 	case ECustomMovementMode::MOVE_Crouch:
 		return CrouchState;   
 	default:
@@ -162,23 +170,13 @@ void UCustomCharacterMovementComponent::HandleCrouch()
 	else if (CanStande()) ChangeState(WalkState);
 }
 
-void UCustomCharacterMovementComponent::HandleSprint()
-{
-	if (CurrentState == SprintState )
-	{
-		ChangeState(SlideState);
-	}
-}
-
-
 bool UCustomCharacterMovementComponent::CanClimb()
 {
 	FHitResult HitResult;
 	FVector StartHead;
 	FVector StartFoot = StartHead = GetOwner()->GetActorLocation();
-
-	StartHead.Z += Character->GetDefaultHalfHeight() + 30; // TODO: Magic Number
-	StartFoot.Z -= Character->GetDefaultHalfHeight() - 40;
+	
+	StartHead.Z += Character->GetDefaultHalfHeight()*1.5; 
 	FVector EndForwardFoot = StartFoot + (Character->GetActorForwardVector() * WallDistance);
 	FVector EndForwardHead = StartHead + (Character->GetActorForwardVector() * WallDistance);
 
@@ -196,15 +194,52 @@ bool UCustomCharacterMovementComponent::CanClimb()
 	FVector direction = Character->GetActorLocation() - HitResult.ImpactPoint;
 	direction.Normalize();
 	FVector target = bHitForwardHead ? HitResult.ImpactPoint + direction * Capsule->GetUnscaledCapsuleRadius() :
-					 EndForwardHead + Character->GetActorUpVector() * Character->GetDefaultHalfHeight() /*StandingCapsuleHalfHeight*/;
-	FVector targetDown = target + Character->GetActorUpVector()*(-1) * 1000 ;
+					 EndForwardHead + Character->GetActorUpVector() * Character->GetDefaultHalfHeight();
+	FVector targetDown = target + Character->GetActorUpVector()*(-1) * 1000 ; // TODO :: MAGIC NUMBER
 	if(Character->GetWorld()->LineTraceSingleByChannel(HitResult, target, targetDown, ECC_Visibility, TraceParams))
 	{
-		ClimbLadgeState->Target = HitResult.ImpactPoint + Character->GetActorUpVector() * (Character->GetDefaultHalfHeight()/*StandingCapsuleHalfHeight*/);
-        ClimbLadgeState->Target.Z += 10;//Magic number to fix Switching when climbing. Its disgusting
+		ClimbLadgeState->Target = HitResult.ImpactPoint + Character->GetActorUpVector() * (Character->GetDefaultHalfHeight());
+		DrawDebugSphere(Character->GetWorld(), ClimbLadgeState->Target, 0.5, 16, FColor::Green,
+				false, 1, -1, 10);
 	}
 
 	return bHitForwardFoot && !bHitForwardHead;
+}
+
+bool UCustomCharacterMovementComponent::CanJumpOverObstacle()
+{
+	FHitResult HitResult;
+	FVector StartHead;
+	FVector StartFoot = StartHead = GetOwner()->GetActorLocation();
+
+	StartHead.Z += Character->GetDefaultHalfHeight();
+	FVector EndFoot = StartFoot + (Character->GetActorForwardVector() * MaxJumpOverObstacleDistance);
+	FVector EndHead = StartHead + (Character->GetActorForwardVector() * MaxJumpOverObstacleDistance);
+	FVector AfterObstacle = EndHead - (Character->GetActorUpVector() * Character->GetDefaultHalfHeight()*0.9);
+
+	FCollisionQueryParams TraceParams(FName(TEXT("WallTrace")), true, Character);
+	bool bHitFoot = Character->GetWorld()->LineTraceSingleByChannel(
+		HitResult, StartFoot, EndFoot, ECC_Visibility, TraceParams);
+	bool bHitHead = Character->GetWorld()->LineTraceSingleByChannel(
+		HitResult, StartHead, EndHead, ECC_Visibility, TraceParams);
+	bool bHitAfterObstacle = Character->GetWorld()->LineTraceSingleByChannel(
+	HitResult, EndHead, AfterObstacle, ECC_Visibility, TraceParams);
+	
+	DrawDebugLine(Character->GetWorld(), StartFoot, EndFoot, FColor::Red,
+		false, -1, 0, 10);
+	DrawDebugLine(Character->GetWorld(), StartHead, EndHead, FColor::Yellow,
+		false, -1, 0, 10);
+	DrawDebugLine(Character->GetWorld(), EndHead, AfterObstacle, FColor::Blue,
+		false, -1, 0, 10);
+	
+	if(bHitFoot && !bHitHead && !bHitAfterObstacle)
+	{
+		JumpOverObstacleState->Target = Character->GetActorLocation() + Character->GetActorForwardVector()*MaxJumpOverObstacleDistance;
+		DrawDebugSphere(Character->GetWorld(), ClimbLadgeState->Target, 0.5, 16, FColor::Green,
+				false, 1, -1, 10);
+	}
+
+	return bHitFoot && !bHitHead && !bHitAfterObstacle;
 }
 
 bool UCustomCharacterMovementComponent::CanStande()
@@ -252,10 +287,8 @@ bool UCustomCharacterMovementComponent::CanWallRun(WallDirection& wallDir)
 	return bHitRight || bHitLeft;
 }
 
-//The parameters are implicitly modified in this function - ClimbLadgeState->LerpAlpha,
 bool UCustomCharacterMovementComponent::MoveCharacter(const FVector& Target, float DeltaTime) 
 {
-	//Block input ?
 	Velocity = FVector::ZeroVector;
 	UpdateComponentVelocity();
 	FVector CurrentPosition = Character->GetActorLocation();
@@ -265,7 +298,6 @@ bool UCustomCharacterMovementComponent::MoveCharacter(const FVector& Target, flo
 	if (ClimbLadgeState->LerpAlpha >= 0.98f || FVector::DistSquared(Target, CurrentPosition) <= 2.f)
 	{
 		Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		// Character->SetActorLocation(Target, false);
 		ClimbLadgeState->LerpAlpha = 0;
 		return true;
 	}
@@ -333,18 +365,18 @@ void UCustomCharacterMovementComponent::SlideTimeLineProgress(float Value)
 
 void UCustomCharacterMovementComponent::CameraHorizontalAngleTimeLineProgress(float Value)
 {
-	auto controller = Character->GetController();
-	auto Rotation = controller->GetControlRotation();
-	FRotator rotator { Rotation.Pitch,Rotation.Yaw,  (wallDirection == WallDirection::Right  || CurrentState == SlideState) ? Value : -Value };
+	const auto Controller = Character->GetController();
+	const auto Rotation = Controller->GetControlRotation();
+	FRotator Rotator { Rotation.Pitch,Rotation.Yaw,  (wallDirection == WallDirection::Right  || CurrentState == SlideState) ? Value : -Value };
 
-	controller->SetControlRotation(rotator);
+	Controller->SetControlRotation(Rotator);
 }
 
 void UCustomCharacterMovementComponent::ClimbTimeLineProgress(const float Value) const
 {
 	const auto Controller = Character->GetController();
 	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator Rotator{ Value, Rotation.Yaw, Rotation.Roll};
+	const FRotator Rotator{ Rotation.Pitch + Value, Rotation.Yaw, Rotation.Roll};
 
 	Controller->SetControlRotation(Rotator);
 }

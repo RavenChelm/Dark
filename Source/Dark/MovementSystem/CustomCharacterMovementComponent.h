@@ -17,6 +17,7 @@ class UClimbLadgeState;
 class UWalkState;
 class USprintState;
 class UMovementState;
+class UJumpOverObstacleState;
 class ADarkCharacter;
 
 UENUM(BlueprintType)
@@ -31,12 +32,10 @@ enum class ECustomMovementMode : uint8
 	MOVE_WallRun			 UMETA(DisplayName = "WallRun"),
 	MOVE_ClimbLadge          UMETA(DisplayName = "Climb Ladge"),
 	MOVE_ClimbRope           UMETA(DisplayName = "Climb Rope"),
+	MOVE_JumpOverObstacle    UMETA(DisplayName = "Jump Over Obstacle"),
 };
 enum class WallDirection { None, Left, Right };
 
-/**
- * 
- */
 UCLASS()
 class DARK_API UCustomCharacterMovementComponent : public UCharacterMovementComponent
 {
@@ -61,7 +60,10 @@ class DARK_API UCustomCharacterMovementComponent : public UCharacterMovementComp
 	TObjectPtr<UWallRunState> WallRunState;
 	UPROPERTY()
 	TObjectPtr<UClimbRopeState> ClimbRopeState;
-	
+	UPROPERTY()
+	TObjectPtr<UJumpOverObstacleState> JumpOverObstacleState;
+
+	// TODO:: This dont need strong link?
 	UPROPERTY()
 	ADarkCharacter* Character;
 	UPROPERTY()
@@ -87,11 +89,10 @@ public:
 	void HandleJumpStop();
 	UFUNCTION()
 	void HandleCrouch();
-	UFUNCTION()
-	void HandleSprint();
-	
+
 	//Helping Function
 	bool CanClimb();
+	bool CanJumpOverObstacle();
 	bool CanStande();
 	bool CanWallRun(WallDirection& wallDir);
 	bool MoveCharacter(const FVector& Target, float DeltaTime) ;
@@ -134,6 +135,12 @@ public:
 	float GeneralGroundFriction = 8.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General Movement")
 	float GeneralBrakingDeceleration = 2048.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General Movement")
+	bool EnableAcceleration = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General Movement")
+	float ComonAcceleration = 5000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "General Movement")
+	bool EnableWallRun = true;
 	
 	//SprintState Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Run")
@@ -196,6 +203,8 @@ public:
 	float JumpMaxAcceleration = 1500.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Jump")
 	float WallDistance = 40.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Jump")
+	float MaxJumpOverObstacleDistance = 60.f;
 
 	//WallRun Settings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WallRun")
