@@ -90,9 +90,9 @@ void ADarkCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ADarkCharacter::StartSprint); 
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ADarkCharacter::StopSprint);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ADarkCharacter::StartCrouch);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ADarkCharacter::StartInteract);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ADarkCharacter::StartAttack);
-		EnhancedInputComponent->BindAction(LongInteractAction, ETriggerEvent::Triggered, this, &ADarkCharacter::StartLongInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ADarkCharacter::StartInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ADarkCharacter::ReleaseInteract);
 	}
 	else
 	{
@@ -126,9 +126,9 @@ void ADarkCharacter::StartInteract()
 	OnInteract.Broadcast();
 }
 
-void ADarkCharacter::StartLongInteract()
+void ADarkCharacter::ReleaseInteract()
 {
-	OnLongInteract.Broadcast();
+	OnReleaseInteract.Broadcast();
 }
 
 void ADarkCharacter::StartSprint()

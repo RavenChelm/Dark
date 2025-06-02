@@ -19,5 +19,5 @@ public:
 	void UpdateState(float Progress);
     
 	UFUNCTION(BlueprintNativeEvent, Category = "Switch Control")
-	void Toggle(AActor* Instigator);
+	void Toggle(const AActor* Instigator);
 };

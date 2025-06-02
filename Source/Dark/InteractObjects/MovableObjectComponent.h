@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IInteractable.h"
-#include "IThrowable.h"
+#include "Dark/InteractObjects/Interfaces/IInteractable.h"
+#include "Dark/InteractObjects/Interfaces/IThrowable.h"
 #include "Components/ActorComponent.h"
 #include "MovableObjectComponent.generated.h"
 

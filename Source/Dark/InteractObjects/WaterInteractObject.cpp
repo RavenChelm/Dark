@@ -8,6 +8,7 @@ void UWaterInteractObject::BeginPlay()
 {
 	Super::BeginPlay();
 	ParticleSystemComponent = GetOwner()->FindComponentByClass<UParticleSystemComponent>();
+	
 }
 
 void UWaterInteractObject::ActStateUp() const

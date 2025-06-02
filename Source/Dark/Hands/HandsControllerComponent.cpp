@@ -4,12 +4,13 @@
 #include "HandsControllerComponent.h"
 
 #include "IWeapon.h"
-#include "../InteractObjects/IInteractable.h"
-#include "Dark/InteractObjects/IThrowable.h"
-#include "CrossbowSkeletalMeshComponent.h"
-#include "SwordSkeletalMeshComponent.h"
+#include "Dark/InteractObjects/Interfaces/IInteractable.h"
+#include "Dark/InteractObjects/Interfaces/IThrowable.h"
+#include "Dark/InteractObjects/Interfaces/ILongInteractable.h"
+#include "Dark/InteractObjects/Interfaces/ILongInteractableSync.h"
+#include "Dark/Hands/CrossbowSkeletalMeshComponent.h" //need for Character->GetCrossbowComponent()
+#include "Dark/Hands/SwordSkeletalMeshComponent.h"
 #include "Dark/DarkCharacter.h"
-#include "Dark/InteractObjects/ILongInteractable.h"
 
 UHandsControllerComponent::UHandsControllerComponent()
 {
@@ -21,13 +22,13 @@ void UHandsControllerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	Character = Cast<ADarkCharacter>(GetOwner());
-	if (Character)
+	if (Character.IsValid())
 	{
 		Character->OnInteract.AddDynamic(this, &UHandsControllerComponent::StartInteract);
+		Character->OnReleaseInteract.AddDynamic(this, &UHandsControllerComponent::ExecuteInteract);
 		Character->OnAttack.AddDynamic(this, &UHandsControllerComponent::StartAttack);
-		Character->OnLongInteract.AddDynamic(this, &UHandsControllerComponent::StartLongInteract);
-
 		ActiveWeapon = Character->GetCrossbowComponent();
+		Camera = Character->GetFirstPersonCameraComponent();
 	}
 }
 
@@ -35,120 +36,157 @@ void UHandsControllerComponent::BeginPlay()
 void UHandsControllerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (CurrentMode == EHandsMode::Hands_Empty)
-	{
-		DrawDebugSphere(GetWorld(), Character->GetGrabPoint()->GetComponentLocation(), 10, 12, FColor::Red, false, -1);
+	const FVector Start = Camera->GetComponentLocation();
+	const FVector End = Start + (Camera->GetComponentRotation().Vector() * InteractionDistance);
+	FHitResult HitResult;
+	FCollisionQueryParams TraceParams(FName(TEXT("InteractableTrace")), true, GetOwner());
+	const bool bHit = Character->GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_GameTraceChannel2, TraceParams); //Channel - Interactable
 
-		const FVector Start = Character->GetFirstPersonCameraComponent()->GetComponentLocation();
-		const FVector End = Start + (Character->GetFirstPersonCameraComponent()->GetComponentRotation().Vector() * InteractionDistance);
-
-		if (FHitResult HitResult; Character->GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility))
+	switch (CurrentMode) {
+	case EHandsMode::Empty:
+		if (bHit)
 		{
-			if (TArray<UActorComponent*> InteractableComponents = HitResult.GetActor()->GetComponentsByInterface(UInteractable::StaticClass()); InteractableComponents.Num() > 0)
-			{
-				InteractActor = HitResult.GetActor();
-				PossiblyItem = InteractableComponents[0];
-				SwitchInteractionPrompt(true); 
-			}
+			InteractActor = HitResult.GetActor();
 		}
-		else
+		else if (InteractActor.IsValid())
 		{
-			PossiblyItem = nullptr;
-			SwitchInteractionPrompt(false); 
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Reset Objects"));
+			InteractActor.Reset();
 		}
-	}
-	else if (CurrentMode == EHandsMode::Hands_Item)
-	{
-		const FVector Start = Character->GetFirstPersonCameraComponent()->GetComponentLocation();
-		const FVector End = Start + (Character->GetFirstPersonCameraComponent()->GetComponentRotation().Vector() * InteractionDistance);
-		
-		if (FHitResult HitResult; !Character->GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility) ||
-			HitResult.GetActor() != InteractActor)
+		break;
+	case EHandsMode::Item_Interact: 
+		CurrentInteractionTime += DeltaTime;
+		if (!bHit || InteractActor != HitResult.GetActor())
 		{
-			CancelLongInteract();
+			CancelLongSyncInteract();
+			CancelInteract();
 		}
+		ExecuteTickLongSyncInteract(CurrentInteractionTime / MaxInteractionTime * DeltaTime);
+		if (CurrentInteractionTime >= MaxInteractionTime)
+		{
+			ExecuteInteract();
+			ExecuteLongInteract();
+			CompleteLongSyncInteract();
+			CancelInteract();
+		}
+		break;
 	}
 }
 
 void UHandsControllerComponent::StartInteract()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Start Interact"));
-
-	switch (CurrentMode) {
-	case EHandsMode::Hands_Empty:
-		if (PossiblyItem && PossiblyItem->Implements<UInteractable>())
+	if (CurrentMode == EHandsMode::Empty && InteractActor.IsValid())
+	{
+		CurrentMode = EHandsMode::Item_Interact;
+		StartLongSyncInteraction();
+	}
+}
+void UHandsControllerComponent::ExecuteInteract()
+{
+	if (InteractActor.IsValid() && !HoldActor.IsValid())
+	{
+		if (TArray<UActorComponent*> InteractableComponents = InteractActor->
+			GetComponentsByInterface(UInteractable::StaticClass()); InteractableComponents.Num() > 0)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Do something with item"));
-			IInteractable::Execute_Interact(PossiblyItem, Character);
-			if (PossiblyItem->Implements<UThrowable>())
-			{
-				InteractItem = PossiblyItem;
-				CurrentMode = EHandsMode::Hands_Item;
-			}
+			IInteractable::Execute_Interact(InteractableComponents[0], Character.Get());
 		}
-		else
+	}
+	else if (HoldActor.IsValid())
+	{
+		if (TArray<UActorComponent*> InteractableComponents = HoldActor->
+			GetComponentsByInterface(UThrowable::StaticClass()); InteractableComponents.Num() > 0)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Do nothing"));
+			IThrowable::Execute_Drop(InteractableComponents[0]);
+			HoldActor.Reset();
 		}
-		break;
-	case EHandsMode::Hands_Item:
-		if (InteractItem && InteractItem->Implements<UThrowable>())
+	}
+	CancelLongSyncInteract();
+	CurrentMode = EHandsMode::Empty;
+	
+}
+void UHandsControllerComponent::ExecuteLongInteract() const
+{
+	if (InteractActor.IsValid())
+	{
+		if (TArray<UActorComponent*> InteractableComponents = InteractActor->
+			GetComponentsByInterface(ULongInteractable::StaticClass()); InteractableComponents.Num() > 0)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Drop Item"));
-			IThrowable::Execute_Drop(InteractItem);
-			InteractItem = nullptr;
-			CurrentMode = EHandsMode::Hands_Empty;
+			ILongInteractable::Execute_StartLongInteract(InteractableComponents[0], Character.Get());
 		}
-		break;
 	}
 }
 
-void UHandsControllerComponent::StartLongInteract()
+void UHandsControllerComponent::StartLongSyncInteraction() const
 {
-	if (CurrentMode == EHandsMode::Hands_Empty)
+	if (InteractActor.IsValid())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Start Long Interact Action"));
-		if (PossiblyItem && PossiblyItem->Implements<ULongInteractable>())
+		if (TArray<UActorComponent*> InteractableComponents = InteractActor->
+			GetComponentsByInterface(ULongInteractableSync::StaticClass()); InteractableComponents.Num() > 0)
 		{
-			InteractItem = PossiblyItem;
-			ILongInteractable::Execute_StartLongInteract(InteractItem, Character);
-			CurrentMode = EHandsMode::Hands_Item;
+			ILongInteractableSync::Execute_StartLongInteractSync(InteractableComponents[0], Character.Get());
 		}
 	}
 }
-void UHandsControllerComponent::CancelLongInteract()
+void UHandsControllerComponent::ExecuteTickLongSyncInteract(float Progress) const
 {
-	if (CurrentMode == EHandsMode::Hands_Item)
+	if (InteractActor.IsValid())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, TEXT("Cancel Long Interact Action"));
-		if (InteractItem && InteractItem->Implements<ULongInteractable>())
+		if (TArray<UActorComponent*> InteractableComponents = InteractActor->
+			GetComponentsByInterface(ULongInteractableSync::StaticClass()); InteractableComponents.Num() > 0)
 		{
-			ILongInteractable::Execute_CancelLongInteract(InteractItem);
-			InteractItem = nullptr;
-			CurrentMode = EHandsMode::Hands_Empty;
+			ILongInteractableSync::Execute_TickLongInteractSync(InteractableComponents[0], Progress);
 		}
 	}
+}
+void UHandsControllerComponent::CompleteLongSyncInteract() const
+{
+	if (InteractActor.IsValid())
+	{
+		if (TArray<UActorComponent*> InteractableComponents = InteractActor->
+			GetComponentsByInterface(ULongInteractableSync::StaticClass()); InteractableComponents.Num() > 0)
+		{
+			ILongInteractableSync::Execute_CompleteLongInteractSync(InteractableComponents[0]);
+		}
+	}
+}
+void UHandsControllerComponent::CancelLongSyncInteract() const
+{
+	if (InteractActor.IsValid())
+	{
+		if (TArray<UActorComponent*> InteractableComponents = InteractActor->
+			GetComponentsByInterface(ULongInteractableSync::StaticClass()); InteractableComponents.Num() > 0)
+		{
+			ILongInteractableSync::Execute_CancelLongInteractSync(InteractableComponents[0]);
+		}
+	}
+}
+
+void UHandsControllerComponent::CancelInteract()
+{
+	CurrentMode = EHandsMode::Empty;
+	InteractActor.Reset();
+	CurrentInteractionTime = 0;
 }
 
 void UHandsControllerComponent::StartAttack()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, TEXT("Attack do throwing"));
-	switch (CurrentMode) {
-	case EHandsMode::Hands_Empty:
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Blue, TEXT("Weapon do attack"));
-		ActiveWeapon->Attack_Implementation();
-		break;
-	case EHandsMode::Hands_Item:
-		if (InteractItem && InteractItem->Implements<UThrowable>())
+	if (HoldActor.IsValid())
+	{
+		if (TArray<UActorComponent*> InteractableComponents = HoldActor->
+			GetComponentsByInterface(UThrowable::StaticClass()); InteractableComponents.Num() > 0)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Throw"));
-			IThrowable::Execute_Throw(InteractItem, Character->GetFirstPersonCameraComponent()->GetForwardVector(), Force);
-			InteractItem = nullptr;
-			CurrentMode = EHandsMode::Hands_Empty;
+			IThrowable::Execute_Throw(InteractableComponents[0], Camera->GetComponentRotation().Vector(), Force);
+			HoldActor.Reset();
 		}
-		break;
+	}
+	else
+	{
+		ActiveWeapon->Attack_Implementation();
 	}
 }
+
+
+
 
 void UHandsControllerComponent::SwitchInteractionPrompt(bool Switcher)
 {

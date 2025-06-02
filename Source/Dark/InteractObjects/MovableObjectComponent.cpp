@@ -4,6 +4,7 @@
 #include "MovableObjectComponent.h"
 #include "../Hands/HandsControllerComponent.h"
 #include "../DarkCharacter.h"
+#include "Physics/PhysicsFiltering.h"
 
 UMovableObjectComponent::UMovableObjectComponent()
 {
@@ -14,6 +15,7 @@ UMovableObjectComponent::UMovableObjectComponent()
 void UMovableObjectComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	GetOwner()->FindComponentByClass<UStaticMeshComponent>()->SetCollisionProfileName(FName("InteractableObject"));
 }
 
 
@@ -29,7 +31,7 @@ void UMovableObjectComponent::Interact_Implementation(const AActor* Other)
 
 	Character = Cast<ADarkCharacter>(Other);
 	if (!Character) return;
-	Character->GetHandsController()->SetInteractItem(this);
+	Character->GetHandsController()->SetHoldActor(GetOwner());
 	UPrimitiveComponent* ObjectMesh = GetOwner()->FindComponentByClass<UPrimitiveComponent>();
 	if (!ObjectMesh) return;
 

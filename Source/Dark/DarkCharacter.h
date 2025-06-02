@@ -54,8 +54,7 @@ class ADarkCharacter : public ACharacter
 	UInputAction* InteractAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LongInteractAction;
+
 	
 	/** Custom Movement Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
@@ -84,9 +83,9 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnSprintStop);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCrouch);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnJumpStart);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLongInteract);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttack);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReleaseInteract);
 
 
 	UPROPERTY(BlueprintAssignable)
@@ -98,17 +97,17 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnJumpStart OnJumpStart;
 	UPROPERTY(BlueprintAssignable)
-	FOnInteract OnInteract;
-	UPROPERTY(BlueprintAssignable)
 	FOnAttack OnAttack;
 	UPROPERTY(BlueprintAssignable)
-	FOnAttack OnLongInteract;
+	FOnInteract OnInteract;
+	UPROPERTY(BlueprintAssignable)
+	FOnReleaseInteract OnReleaseInteract;
 	
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void StartInteract();
-	void StartLongInteract();
+	void ReleaseInteract();
 	void StartSprint();
 	void StopSprint();
 	void StartCrouch();

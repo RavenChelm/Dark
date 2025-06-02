@@ -13,6 +13,7 @@ UPickUpItemComponent::UPickUpItemComponent()
 void UPickUpItemComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	GetOwner()->FindComponentByClass<UStaticMeshComponent>()->SetCollisionProfileName(FName("InteractableObject"));
 }
 
 

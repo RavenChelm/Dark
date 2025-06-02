@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IInteractable.h"
+#include "Dark/InteractObjects/Interfaces/IInteractable.h"
 #include "Components/ActorComponent.h"
 #include "PickUpItemComponent.generated.h"
 

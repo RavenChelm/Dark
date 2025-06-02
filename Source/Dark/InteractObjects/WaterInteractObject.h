@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/StaticMeshComponent.h"
-#include "IInteractable.h"
+#include "Dark/InteractObjects/Interfaces/IInteractable.h"
 #include "WaterInteractObject.generated.h"
 
 class UParticleSystemComponent;

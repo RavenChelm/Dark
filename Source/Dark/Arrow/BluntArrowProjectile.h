@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ArrowProjectile.h"
-#include "Dark/InteractObjects/IInteractable.h"
+#include "Dark/InteractObjects/Interfaces/IInteractable.h"
 #include "BluntArrowProjectile.generated.h"
 
 /**
