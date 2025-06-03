@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "DarkCharacter.generated.h"
 
+class URadialMenuControllerComponent;
 class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
@@ -40,9 +41,9 @@ class ADarkCharacter : public ACharacter
 	UInputMappingContext* DefaultMappingContext;
 
 	/* Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction;
@@ -54,7 +55,8 @@ class ADarkCharacter : public ACharacter
 	UInputAction* InteractAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* RadialMenuAction;
 	
 	/** Custom Movement Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
@@ -76,6 +78,10 @@ class ADarkCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
 	USwordSkeletalMeshComponent* SwordComponent;
 
+	/** Radial Menu Component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	URadialMenuControllerComponent* RadialMenuController;
+
 public:
 	ADarkCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
@@ -86,7 +92,9 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttack);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInteract);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReleaseInteract);
-
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRadialMenuActionPressed);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRadialMenuActionReleased);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMouseInput);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSprintStart OnSprintStart;
@@ -102,7 +110,12 @@ public:
 	FOnInteract OnInteract;
 	UPROPERTY(BlueprintAssignable)
 	FOnReleaseInteract OnReleaseInteract;
-	
+	UPROPERTY(BlueprintAssignable)
+	FOnRadialMenuActionPressed OnRadialMenuActionPressed;
+	UPROPERTY(BlueprintAssignable)
+	FOnRadialMenuActionReleased OnRadialMenuActionReleased;
+	UPROPERTY(BlueprintAssignable)
+	FOnMouseInput OnMouseInput;
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -114,6 +127,8 @@ protected:
 	void StartAttack();
 	virtual void Jump() override;
 	virtual void StopJumping() override;
+	void RadialMenuPressed();
+	void RadialMenuReleased();
 
 
 	// APawn interface

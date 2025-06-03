@@ -7,3 +7,7 @@ void USwordSkeletalMeshComponent::Attack_Implementation()
 {
 	// IWeapon::Attack_Implementation();
 }
+
+void USwordSkeletalMeshComponent::Equip_Implementation()
+{
+}

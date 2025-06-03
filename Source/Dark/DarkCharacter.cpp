@@ -14,6 +14,7 @@
 #include "Hands/HandsControllerComponent.h"
 #include "MovementSystem/CustomCharacterMovementComponent.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "UI/RadialMenuControllerComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -62,6 +63,9 @@ ADarkCharacter::ADarkCharacter(const FObjectInitializer& ObjectInitializer) :
 	
 	// Get a MovementComponent
 	CustomCharacterMovementComponent = Cast<UCustomCharacterMovementComponent>(GetCharacterMovement());
+
+	//Create a RadialMenuController
+	RadialMenuController = CreateDefaultSubobject<URadialMenuControllerComponent>(TEXT("RadialMenuController"));
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -93,6 +97,10 @@ void ADarkCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ADarkCharacter::StartAttack);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ADarkCharacter::StartInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ADarkCharacter::ReleaseInteract);
+		
+		EnhancedInputComponent->BindAction(RadialMenuAction, ETriggerEvent::Started, this, &ADarkCharacter::RadialMenuPressed);
+		EnhancedInputComponent->BindAction(RadialMenuAction, ETriggerEvent::Completed, this, &ADarkCharacter::RadialMenuReleased);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADarkCharacter::Look);
 	}
 	else
 	{
@@ -113,9 +121,11 @@ void ADarkCharacter::Move(const FInputActionValue& Value)
 
 void ADarkCharacter::Look(const FInputActionValue& Value)
 {
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-	if (Controller != nullptr)
+	OnMouseInput.Broadcast();
+
+	if (Controller != nullptr && !RadialMenuController->bIsRadialMenuActive)
 	{
+		const FVector2D LookAxisVector = Value.Get<FVector2D>();
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
@@ -161,3 +171,14 @@ void ADarkCharacter::StopJumping()
 {
 	Super::StopJumping();
 }
+
+void ADarkCharacter::RadialMenuPressed()
+{
+	OnRadialMenuActionPressed.Broadcast();
+}
+
+void ADarkCharacter::RadialMenuReleased()
+{
+	OnRadialMenuActionReleased.Broadcast();
+}
+

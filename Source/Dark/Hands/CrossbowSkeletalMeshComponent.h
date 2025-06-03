@@ -12,9 +12,11 @@ class AArrowProjectile;
 UENUM(BlueprintType)
 enum class EArrowType : uint8
 {
-	Blunt,
+	Sharp,
 	Fire,
-	Water
+	Water,
+	Electric,
+	Blunt
 };
 
 USTRUCT(BlueprintType)
@@ -41,7 +43,7 @@ class DARK_API UCrossbowSkeletalMeshComponent : public USkeletalMeshComponent, p
 public:
 	UCrossbowSkeletalMeshComponent();
 	virtual void Attack_Implementation() override;
-	
+	virtual void Equip_Implementation() override;
 	UFUNCTION(BlueprintCallable)
 	bool AddAmmunition(EArrowType Type, int32 AmmoCount);
 	

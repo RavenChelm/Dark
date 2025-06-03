@@ -16,4 +16,5 @@ class DARK_API USwordSkeletalMeshComponent : public USkeletalMeshComponent, publ
 	GENERATED_BODY()
 	public:
 	virtual void Attack_Implementation() override;
+	virtual void Equip_Implementation() override;
 };

@@ -71,6 +71,9 @@ public:
 	UFUNCTION()
 	void SetHoldActor(AActor* Object) {HoldActor = Object;}
 
+
+	UFUNCTION(BlueprintCallable)
+	void SwitchCurrenTool(int ToolNumber);
 	//Fields
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TScriptInterface<IWeapon> ActiveWeapon;

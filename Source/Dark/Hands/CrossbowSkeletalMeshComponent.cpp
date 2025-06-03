@@ -9,9 +9,11 @@ UCrossbowSkeletalMeshComponent::UCrossbowSkeletalMeshComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
     
-	ArrowInventory.Add(EArrowType::Blunt, {nullptr, 15, 15});
+	ArrowInventory.Add(EArrowType::Sharp, {nullptr, 15, 15});
 	ArrowInventory.Add(EArrowType::Fire, {nullptr, 8, 8});
 	ArrowInventory.Add(EArrowType::Water, {nullptr, 5, 5});
+	ArrowInventory.Add(EArrowType::Electric, {nullptr, 5, 5});
+	ArrowInventory.Add(EArrowType::Blunt, {nullptr, 5, 5});
 	CurrentArrowType = EArrowType::Blunt;
 }
 
@@ -37,11 +39,10 @@ void UCrossbowSkeletalMeshComponent::FireArrow()
 		SpawnRotation,
 		Params))
 	{
-		const float SpeedMultiplier = 1.2f; // Пример модификатора скорости
+		const float SpeedMultiplier = 1.2f; 
 		Projectile->Launch(Cast<ADarkCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetForwardVector(), SpeedMultiplier);
 	}
 
-	// Обновление боеприпасов
 	CurrentArrow.CurrentAmmo = FMath::Clamp(CurrentArrow.CurrentAmmo - 1, 0, CurrentArrow.MaxAmmo);
 	OnAmmoChanged.Broadcast(CurrentArrowType, CurrentArrow.CurrentAmmo);
 }
@@ -94,6 +95,11 @@ void UCrossbowSkeletalMeshComponent::Attack_Implementation()
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Reloading"));
 	}
+}
+
+void UCrossbowSkeletalMeshComponent::Equip_Implementation()
+{
+	IWeapon::Equip_Implementation();
 }
 
 void UCrossbowSkeletalMeshComponent::SwitchArrowType(EArrowType NewType)

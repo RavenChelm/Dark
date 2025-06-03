@@ -185,7 +185,62 @@ void UHandsControllerComponent::StartAttack()
 	}
 }
 
-
+void UHandsControllerComponent::SwitchCurrenTool(int ToolNumber)
+{
+	UCrossbowSkeletalMeshComponent* Crossbow = Character->GetCrossbowComponent();
+	switch (ToolNumber)
+	{
+	case 0:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Sword"));
+		break;
+	case 1:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Sharp Arrow"));
+		if (ActiveWeapon != Crossbow)
+		{
+			ActiveWeapon = Crossbow;
+			ActiveWeapon->Equip_Implementation();
+		}
+		Crossbow->SwitchArrowType(EArrowType::Sharp);
+		break;
+	case 2:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Fire Arrow"));
+		if (ActiveWeapon != Crossbow)
+		{
+			ActiveWeapon = Crossbow;
+			ActiveWeapon->Equip_Implementation();
+		}
+		Crossbow->SwitchArrowType(EArrowType::Fire);
+		break;
+	case 3:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Water Arrow"));
+		if (ActiveWeapon != Crossbow)
+		{
+			ActiveWeapon = Crossbow;
+			ActiveWeapon->Equip_Implementation();
+		}
+		Crossbow->SwitchArrowType(EArrowType::Water);
+		break;
+	case 4:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Electric Arrow"));
+		if (ActiveWeapon != Crossbow)
+		{
+			ActiveWeapon = Crossbow;
+			ActiveWeapon->Equip_Implementation();
+		}
+		Crossbow->SwitchArrowType(EArrowType::Electric);
+		break;
+	case 5:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Grappling hook"));
+		
+		break;
+	case 6:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Smoke Bomb"));
+		break;
+	case 7:
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Blunt Arrow"));
+		break;
+	}
+}
 
 
 void UHandsControllerComponent::SwitchInteractionPrompt(bool Switcher)

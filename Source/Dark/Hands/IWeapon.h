@@ -23,4 +23,6 @@ class DARK_API IWeapon
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
 	void Attack();
+	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
+	void Equip();
 };
