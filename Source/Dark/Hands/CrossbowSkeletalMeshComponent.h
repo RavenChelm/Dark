@@ -40,6 +40,7 @@ UCLASS()
 class DARK_API UCrossbowSkeletalMeshComponent : public USkeletalMeshComponent, public IWeapon
 {
 	GENERATED_BODY()
+	
 public:
 	UCrossbowSkeletalMeshComponent();
 	virtual void Attack_Implementation() override;

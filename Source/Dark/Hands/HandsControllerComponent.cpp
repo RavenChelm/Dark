@@ -238,6 +238,12 @@ void UHandsControllerComponent::SwitchCurrenTool(int ToolNumber)
 		break;
 	case 7:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Blunt Arrow"));
+		if (ActiveWeapon != Crossbow)
+		{
+			ActiveWeapon = Crossbow;
+			ActiveWeapon->Equip_Implementation();
+		}
+		Crossbow->SwitchArrowType(EArrowType::Blunt);
 		break;
 	}
 }

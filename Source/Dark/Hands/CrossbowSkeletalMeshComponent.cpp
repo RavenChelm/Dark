@@ -4,16 +4,22 @@
 #include "CrossbowSkeletalMeshComponent.h"
 #include "../Arrow/ArrowProjectile.h"
 #include "../DarkCharacter.h"
+#include "Dark/Arrow/BluntArrowProjectile.h"
+#include "Dark/Arrow/ElectricArrowProjectile.h"
+#include "Dark/Arrow/FireArrowProjectile.h"
+#include "Dark/Arrow/SharpArrowProjectile.h"
+#include "Dark/Arrow/WaterArrowProjectile.h"
 
 UCrossbowSkeletalMeshComponent::UCrossbowSkeletalMeshComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-    
-	ArrowInventory.Add(EArrowType::Sharp, {nullptr, 15, 15});
-	ArrowInventory.Add(EArrowType::Fire, {nullptr, 8, 8});
-	ArrowInventory.Add(EArrowType::Water, {nullptr, 5, 5});
-	ArrowInventory.Add(EArrowType::Electric, {nullptr, 5, 5});
-	ArrowInventory.Add(EArrowType::Blunt, {nullptr, 5, 5});
+
+	// TODO:: MAGIC NUMBER
+	ArrowInventory.Add(EArrowType::Sharp, {ASharpArrowProjectile::StaticClass(), 5, 5});
+	ArrowInventory.Add(EArrowType::Fire, {AFireArrowProjectile::StaticClass(), 5, 5});
+	ArrowInventory.Add(EArrowType::Water, {AWaterArrowProjectile::StaticClass(), 5, 5});
+	ArrowInventory.Add(EArrowType::Electric, {AElectricArrowProjectile::StaticClass(), 5, 5});
+	ArrowInventory.Add(EArrowType::Blunt, {ABluntArrowProjectile::StaticClass(), 5, 5});
 	CurrentArrowType = EArrowType::Blunt;
 }
 
@@ -53,13 +59,7 @@ void UCrossbowSkeletalMeshComponent::StartReload()
 
 	bIsReloading = true;
 	OnReloadStart.Broadcast();
-	GetWorld()->GetTimerManager().SetTimer(
-		ReloadTimerHandle,
-		this,
-		&UCrossbowSkeletalMeshComponent::FinishReload,
-		ReloadTime,
-		false
-	);
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle,this,&UCrossbowSkeletalMeshComponent::FinishReload,ReloadTime,false);
 }
 
 void UCrossbowSkeletalMeshComponent::FinishReload()

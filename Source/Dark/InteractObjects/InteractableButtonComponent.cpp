@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InteractableButtonComponent.h"
+
+#include "EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/ISwitchControllable.h"
 #include "Components/TimelineComponent.h"
 
@@ -38,5 +40,24 @@ void UInteractableButtonComponent::Interact_Implementation(const AActor* Other)
 				if (bBlockAfterInteraction) bBlock = true;
 			}
 		}
+	}
+}
+
+bool UInteractableButtonComponent::ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator,
+	const FHitResult& Hit)
+{
+	switch (ElementType)
+	{
+	case EElementalType::Fire:
+		return false;
+	case EElementalType::None:
+		Interact_Implementation(Instigator); //Кнопка нажимается стрелой
+		return true;
+	case EElementalType::Water:
+		return false;
+	case EElementalType::Electric:
+		return false;
+	default:
+		return false;
 	}
 }

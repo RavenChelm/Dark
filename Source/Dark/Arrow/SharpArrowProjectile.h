@@ -4,14 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "ArrowProjectile.h"
-#include "Dark/InteractObjects/Interfaces/IInteractable.h"
-#include "BluntArrowProjectile.generated.h"
-
+#include "SharpArrowProjectile.generated.h"
 
 UCLASS()
-class DARK_API ABluntArrowProjectile : public AArrowProjectile
+class DARK_API ASharpArrowProjectile : public AArrowProjectile
 {
 	GENERATED_BODY()
+
 public:
+	ASharpArrowProjectile();
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	virtual void Tick(float DeltaTime) override;
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
+
 };

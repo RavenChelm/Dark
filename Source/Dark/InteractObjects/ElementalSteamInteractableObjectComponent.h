@@ -4,20 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Interfaces/IInteractable.h"
 #include "Interfaces/IReactive.h"
-#include "InteractableButtonComponent.generated.h"
+#include "ElementalSteamInteractableObjectComponent.generated.h"
 
-
-class UTimelineComponent;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class DARK_API UInteractableButtonComponent : public UActorComponent, public IInteractable, public IReactive
+class DARK_API UElementalSteamInteractableObjectComponent : public UActorComponent, public IReactive
 {
 	GENERATED_BODY()
 
 public:
-	UInteractableButtonComponent();
+	UElementalSteamInteractableObjectComponent();
 
 protected:
 	virtual void BeginPlay() override;
@@ -25,14 +22,6 @@ protected:
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void Interact_Implementation(const AActor* Other) override;
-	virtual bool ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator, const FHitResult& Hit) override;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Switch")
-	TArray<AActor*> ControlledActors;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Switch")
-	bool bBlockAfterInteraction;
 
-private:
-	bool bBlock = false;
+	virtual bool ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator, const FHitResult& Hit) override;
 };

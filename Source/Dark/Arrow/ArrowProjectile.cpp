@@ -21,7 +21,7 @@ AArrowProjectile::AArrowProjectile()
     ProjectileMovement->MaxSpeed = 10000.f;
     ProjectileMovement->bRotationFollowsVelocity = true;
     ProjectileMovement->bShouldBounce = false;
-    ProjectileMovement->ProjectileGravityScale = 0.1f; // Пример гравитации
+    ProjectileMovement->ProjectileGravityScale = 0.1f; 
     
 }
 
@@ -47,14 +47,6 @@ void AArrowProjectile::BeginPlay()
 void AArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     if (!bWasLaunched) return;
-
-    // if (OtherComp && OtherComp->IsSimulatingPhysics())
-    // {
-    //     OtherComp->AddImpulseAtLocation(
-    //         ProjectileMovement->Velocity * 0.1f, 
-    //         GetActorLocation()
-    //     );
-    // }
 
     AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
     

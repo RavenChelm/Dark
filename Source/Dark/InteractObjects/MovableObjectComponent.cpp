@@ -2,6 +2,8 @@
 
 
 #include "MovableObjectComponent.h"
+
+#include "EElementalType.h"
 #include "../Hands/HandsControllerComponent.h"
 #include "../DarkCharacter.h"
 #include "Physics/PhysicsFiltering.h"
@@ -66,6 +68,31 @@ void UMovableObjectComponent::Drop_Implementation()
 	ObjectMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 	Character = nullptr;
 }
+
+bool UMovableObjectComponent::ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator,
+	const FHitResult& Hit)
+{
+
+	float Force = 1000; // TODO:: MagicNumber;
+	switch (ElementType)
+	{
+	case EElementalType::Electric:
+		Throw_Implementation(Instigator->GetActorForwardVector(),Force); 
+		return true;
+	case EElementalType::None:
+		Throw_Implementation(Instigator->GetActorForwardVector(),Force); 
+		return true;
+	case EElementalType::Fire:
+		Throw_Implementation(Instigator->GetActorForwardVector(),Force); 
+		return true;
+	case EElementalType::Water:
+		Throw_Implementation(Instigator->GetActorForwardVector(),Force); 
+		return true;
+	default:
+		return false;
+	}
+}
+
 //Версия с физичным перетаскиванием 
 // void UMovableObjectComponent::Interact(const AActor* Other)
 // {
