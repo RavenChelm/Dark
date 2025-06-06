@@ -35,8 +35,25 @@ void ASharpArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				// TODO :: динамически отслеживать тип стрелы из переменной, чтобы иметь возможность менять тип взависимости от того, через что она пролетает
-				IReactive::Execute_ReactToElement(Comp, EElementalType::None, this, Hit); 
+				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit); 
+			}
+		}
+	}
+}
+
+void ASharpArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	
+	if (OtherActor && OtherActor != this && OtherComp != nullptr){
+
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Overlap Sharp Arrow"));
+		if (TArray<UActorComponent*> Components = OtherActor->GetComponentsByInterface(UReactive::StaticClass()); Components.Num() > 0)
+		{
+			for (UActorComponent* Comp : Components)
+			{
+				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
 			}
 		}
 	}

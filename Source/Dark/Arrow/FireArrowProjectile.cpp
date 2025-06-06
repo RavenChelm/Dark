@@ -5,20 +5,15 @@
 
 #include "Dark/InteractObjects/EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/IReactive.h"
-#include "Particles/ParticleSystemComponent.h"
 
 AFireArrowProjectile::AFireArrowProjectile()
 {
-	FlashParticleComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("FlashParticleComponent"));
 }
 
 void AFireArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
-	if (FlashParticleComponent)
-	{
-		FlashParticleComponent->Activate();
-	}
+
 	if (OtherActor && OtherActor != this && OtherComp != nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Hit Fire Arrow"));
@@ -26,8 +21,24 @@ void AFireArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				// TODO :: динамически отслеживать тип стрелы из переменной, чтобы иметь возможность менять тип взависимости от того, через что она пролетает
-				IReactive::Execute_ReactToElement(Comp, EElementalType::Fire, this, Hit); 
+				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit); 
+			}
+		}
+	}
+}
+
+void AFireArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	if (OtherActor && OtherActor != this && OtherComp != nullptr){
+
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Overlap Fire Arrow"));
+		if (TArray<UActorComponent*> Components = OtherActor->GetComponentsByInterface(UReactive::StaticClass()); Components.Num() > 0)
+		{
+			for (UActorComponent* Comp : Components)
+			{
+				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
 			}
 		}
 	}

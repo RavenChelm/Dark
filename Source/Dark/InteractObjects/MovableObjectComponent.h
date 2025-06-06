@@ -27,5 +27,5 @@ public:
 	virtual void Throw_Implementation(const FVector& Direction, float Force) override;
 	virtual void Drop_Implementation() override;
 
-	virtual bool ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator, const FHitResult& Hit) override;
+	virtual bool ReactToElement_Implementation(EElementalType& ElementType, AActor* Instigator, const FHitResult& Hit) override;
 };

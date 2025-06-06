@@ -27,8 +27,11 @@ void UInteractableButtonComponent::TickComponent(float DeltaTime, ELevelTick Tic
 
 void UInteractableButtonComponent::Interact_Implementation(const AActor* Other)
 {
-	if (bBlock) return;
-	
+	if (bBlock)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Button is block now"));
+		return;
+	}
 	for (const AActor* ControlledActor : ControlledActors)
 	{
 		if (ControlledActor)
@@ -43,7 +46,8 @@ void UInteractableButtonComponent::Interact_Implementation(const AActor* Other)
 	}
 }
 
-bool UInteractableButtonComponent::ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator,
+
+bool UInteractableButtonComponent::ReactToElement_Implementation(EElementalType& ElementType, AActor* Instigator,
 	const FHitResult& Hit)
 {
 	switch (ElementType)
@@ -60,4 +64,25 @@ bool UInteractableButtonComponent::ReactToElement_Implementation(EElementalType 
 	default:
 		return false;
 	}
+}
+
+void UInteractableButtonComponent::ReactToShortCircuit_Implementation(const AActor* Other)
+{
+	SetBlock_Implementation(true);
+	for (const AActor* ControlledActor : ControlledActors)
+	{
+		if (ControlledActor)
+		{
+			if (TArray<UActorComponent*> Components = ControlledActor->
+				GetComponentsByInterface(USwitchControllable::StaticClass()); Components.Num() > 0)
+			{
+				ISwitchControllable::Execute_SetState(Components[0], Other, true);
+			}
+		}
+	}
+}
+
+void UInteractableButtonComponent::SetBlock_Implementation(const bool Block)
+{
+	bBlock = Block;
 }

@@ -61,7 +61,7 @@ void UHandsControllerComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			CancelLongSyncInteract();
 			CancelInteract();
 		}
-		ExecuteTickLongSyncInteract(CurrentInteractionTime / MaxInteractionTime * DeltaTime);
+		ExecuteTickLongSyncInteract(DeltaTime);
 		if (CurrentInteractionTime >= MaxInteractionTime)
 		{
 			ExecuteInteract();

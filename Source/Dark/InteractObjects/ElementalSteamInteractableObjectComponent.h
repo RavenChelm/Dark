@@ -23,5 +23,5 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
-	virtual bool ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator, const FHitResult& Hit) override;
+	virtual bool ReactToElement_Implementation(EElementalType& ElementType, AActor* Instigator, const FHitResult& Hit) override;
 };

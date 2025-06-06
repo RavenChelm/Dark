@@ -22,5 +22,5 @@ class DARK_API IReactive
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
-	bool ReactToElement(EElementalType ElementType, AActor* Instigator, const FHitResult& Hit);
+	bool ReactToElement(EElementalType& ElementType, AActor* Instigator, const FHitResult& Hit);
 };

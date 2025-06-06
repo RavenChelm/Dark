@@ -69,7 +69,7 @@ void UMovableObjectComponent::Drop_Implementation()
 	Character = nullptr;
 }
 
-bool UMovableObjectComponent::ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator,
+bool UMovableObjectComponent::ReactToElement_Implementation(EElementalType& ElementType, AActor* Instigator,
 	const FHitResult& Hit)
 {
 

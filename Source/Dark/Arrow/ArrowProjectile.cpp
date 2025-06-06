@@ -12,9 +12,11 @@ AArrowProjectile::AArrowProjectile()
     CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
     CollisionComp->InitSphereRadius(5.0f);
     // CollisionComp->SetCollisionProfileName(TEXT("ArrowProjectile"));
+    CollisionComp->SetGenerateOverlapEvents(true);
     CollisionComp->OnComponentHit.AddDynamic(this, &AArrowProjectile::OnHit);
+    CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AArrowProjectile::OnOverlapBegin);
     RootComponent = CollisionComp;
-
+    
     ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
     ProjectileMovement->UpdatedComponent = CollisionComp;
     ProjectileMovement->InitialSpeed = 0.f; // Start with 0, will be set in Launch
@@ -29,7 +31,7 @@ void AArrowProjectile::Launch(const FVector& Direction, float SpeedMultiplier)
 {
     if(!ProjectileMovement || bWasLaunched) return;
     
-    const float FinalSpeed = ProjectileMovement->MaxSpeed * SpeedMultiplier;
+    const float FinalSpeed = ProjectileMovement->MaxSpeed;
     
     ProjectileMovement->Velocity = Direction.GetSafeNormal() * FinalSpeed;
     ProjectileMovement->Activate();
@@ -62,4 +64,13 @@ void AArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
             GetActorRotation()
         );
     }
+}
+
+void AArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+    if (!bWasLaunched) return;
+    
+    GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow,
+    FString::Printf(TEXT("Arrow overlapped with: %s"), *OtherActor->GetName()));
 }

@@ -4,46 +4,52 @@
 #include "ControlledGateComponent.h"
 
 
-// Sets default values for this component's properties
 UControlledGateComponent::UControlledGateComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+    PrimaryComponentTick.bCanEverTick = true;
 }
 
-
-// Called when the game starts
 void UControlledGateComponent::BeginPlay()
 {
-	Super::BeginPlay();
-
-	TargetLocation = GetOwner()->GetActorLocation() + TargetLocation;
+    Super::BeginPlay();
+    StartLocation = GetOwner()->GetActorLocation();
+    TargetLocation = StartLocation + MoveOffset;
+    if (bIsOpenPreGame)
+    {
+        GetOwner()->SetActorLocation(TargetLocation);
+        MoveDirection = 1;
+    }
 }
 
-
-// Called every frame
-void UControlledGateComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                             FActorComponentTickFunction* ThisTickFunction)
+void UControlledGateComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    if (bIsMoving)
+    {
+        MoveProgress += MoveDirection * CurrentSpeed * DeltaTime;
+        MoveProgress = FMath::Clamp(MoveProgress, 0.f, 1.f);
 
-	if (bItBlock)
-	{
-		LerpAlpha += DeltaTime * Speed;
-		FVector CurrentPosition = GetOwner()->GetActorLocation();
-		FVector NewPosition = FMath::Lerp(CurrentPosition, TargetLocation, LerpAlpha);
-		GetOwner()->SetActorLocation(NewPosition);
-		if (LerpAlpha >= 1) bItBlock = false;
-	}	
+        const FVector NewLocation = FMath::Lerp(StartLocation, TargetLocation, MoveProgress);
+        GetOwner()->SetActorLocation(NewLocation);
+    
+        if ((MoveDirection > 0 && MoveProgress >= 1.f) || 
+            (MoveDirection < 0 && MoveProgress <= 0.f))
+        {
+            bIsMoving = false;
+        }
+    }
 }
 
 void UControlledGateComponent::Toggle_Implementation(const AActor* Instigator)
 {
-	bItBlock = true;
-}
-void UControlledGateComponent::UpdateState_Implementation(float Progress)
-{
-	FVector CurrentPosition = GetOwner()->GetActorLocation();
-	FVector NewPosition = FMath::Lerp(CurrentPosition, TargetLocation, Progress);
-	GetOwner()->SetActorLocation(NewPosition);
+    MoveDirection *= -1;
+    CurrentSpeed = MoveDirection > 0.f ? OpenSpeed : CloseSpeed;
+    bIsMoving = true;
 }
 
+void UControlledGateComponent::SetState_Implementation(const AActor* Instigator, bool SwitchState)
+{
+    MoveDirection = SwitchState ? 1.f : -1.f;
+    CurrentSpeed = MoveDirection > 0.f ? OpenSpeed : CloseSpeed;
+    bIsMoving = true;
+}

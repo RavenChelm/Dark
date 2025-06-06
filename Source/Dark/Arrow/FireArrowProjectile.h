@@ -14,8 +14,6 @@ class DARK_API AFireArrowProjectile : public AArrowProjectile
 public:
 	AFireArrowProjectile();
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UParticleSystemComponent* FlashParticleComponent;
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 };

@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Dark/InteractObjects/EElementalType.h"
 #include "GameFramework/Actor.h"
 #include "ArrowProjectile.generated.h"
 
+enum class EElementalType : uint8;
 class USphereComponent;
 class UProjectileMovementComponent;
 
@@ -19,7 +21,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Projectile")
 	void Launch(const FVector& Direction, float SpeedMultiplier = 1.0f);
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ArrowSettings")
+	EElementalType CurrentElement;
 protected:
 	virtual void BeginPlay() override;
 
@@ -31,11 +34,11 @@ protected:
 
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
 	bool bWasLaunched = false;
-	UPROPERTY(EditDefaultsOnly, Category = "ArrowSettings")
-	bool ItSharpArrow = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	UParticleSystem* ImpactEffect;
 };

@@ -23,13 +23,16 @@ void UIgnitableObjectComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-bool UIgnitableObjectComponent::ReactToElement_Implementation(EElementalType ElementType, AActor* Instigator,
+bool UIgnitableObjectComponent::ReactToElement_Implementation(EElementalType& ElementType, AActor* Instigator,
 	const FHitResult& Hit)
 {
 	switch (ElementType)
 	{
 	case EElementalType::None:
-		//Если через огонь пролетит обычная стрела, то она должна загореться
+		if (bIsBurn)
+		{
+			ElementType = EElementalType::Fire;
+		}
 		return true;
 	case EElementalType::Fire:
 		Ignition();
@@ -39,7 +42,12 @@ bool UIgnitableObjectComponent::ReactToElement_Implementation(EElementalType Ele
 		SpawnSteamCloud(Instigator, Hit);
 		return true;
 	case EElementalType::Electric:
-		//Если через огонь пролетит электрическая стрела, то пламя ионизируется(меняет цвет) и стрела взрывается, отталкивая врагов и нанося урон
+		//Если через огонь пролетит электрическая стрела, то пламя ионизируется(меняет цвет) и стрела взрывается, отталкивая врагов, наносит урон и тушит пламя
+		if (bIsBurn)
+		{
+			Extinguish();
+			//Explosion();
+		}
 		return true;
 	default:
 		return false;

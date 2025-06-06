@@ -22,7 +22,7 @@ void UElementalSteamInteractableObjectComponent::TickComponent(float DeltaTime, 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
-bool UElementalSteamInteractableObjectComponent::ReactToElement_Implementation(EElementalType ElementType,
+bool UElementalSteamInteractableObjectComponent::ReactToElement_Implementation(EElementalType& ElementType,
 	AActor* Instigator, const FHitResult& Hit)
 {
 	switch (ElementType)

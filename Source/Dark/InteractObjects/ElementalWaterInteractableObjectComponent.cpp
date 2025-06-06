@@ -23,7 +23,7 @@ void UElementalWaterInteractableObjectComponent::TickComponent(float DeltaTime, 
 	// ...
 }
 
-bool UElementalWaterInteractableObjectComponent::ReactToElement_Implementation(EElementalType ElementType,
+bool UElementalWaterInteractableObjectComponent::ReactToElement_Implementation(EElementalType& ElementType,
 	AActor* Instigator, const FHitResult& Hit)
 {
 	switch (ElementType)

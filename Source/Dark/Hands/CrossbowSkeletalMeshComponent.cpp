@@ -45,8 +45,7 @@ void UCrossbowSkeletalMeshComponent::FireArrow()
 		SpawnRotation,
 		Params))
 	{
-		const float SpeedMultiplier = 1.2f; 
-		Projectile->Launch(Cast<ADarkCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetForwardVector(), SpeedMultiplier);
+		Projectile->Launch(Cast<ADarkCharacter>(GetOwner())->GetFirstPersonCameraComponent()->GetForwardVector(), 1);
 	}
 
 	CurrentArrow.CurrentAmmo = FMath::Clamp(CurrentArrow.CurrentAmmo - 1, 0, CurrentArrow.MaxAmmo);

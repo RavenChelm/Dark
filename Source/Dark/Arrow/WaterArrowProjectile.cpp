@@ -23,7 +23,7 @@ void AWaterArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				if (IReactive::Execute_ReactToElement(Comp, EElementalType::Water, this, Hit) && !bReactStatus)
+				if (IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit) && !bReactStatus)
 				{
 					bReactStatus = true;
 				}
@@ -38,6 +38,24 @@ void AWaterArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		}
 	}
 }
+
+void AWaterArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	if (OtherActor && OtherActor != this && OtherComp != nullptr){
+
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Overlap Water Arrow"));
+		if (TArray<UActorComponent*> Components = OtherActor->GetComponentsByInterface(UReactive::StaticClass()); Components.Num() > 0)
+		{
+			for (UActorComponent* Comp : Components)
+			{
+				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
+			}
+		}
+	}
+}
+
 bool AWaterArrowProjectile::CanSpawnWaterPuddle(const FHitResult& Hit) const
 {
     const float SurfaceAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(Hit.ImpactNormal, FVector::UpVector)));
