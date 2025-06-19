@@ -3,7 +3,7 @@
 
 #include "MovableObjectComponent.h"
 
-#include "EElementalType.h"
+#include "Dark/Hands/FCustomDamageType.h"
 #include "../Hands/HandsControllerComponent.h"
 #include "../DarkCharacter.h"
 #include "Physics/PhysicsFiltering.h"

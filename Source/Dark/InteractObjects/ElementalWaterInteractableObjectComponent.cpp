@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ElementalWaterInteractableObjectComponent.h"
-#include "EElementalType.h"
+#include "Dark/Hands/FCustomDamageType.h"
 
 UElementalWaterInteractableObjectComponent::UElementalWaterInteractableObjectComponent()
 {

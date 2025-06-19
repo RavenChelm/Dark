@@ -2,7 +2,7 @@
 
 
 #include "ElementalSteamInteractableObjectComponent.h"
-#include "EElementalType.h"
+#include "Dark/Hands/FCustomDamageType.h"
 
 UElementalSteamInteractableObjectComponent::UElementalSteamInteractableObjectComponent()
 {

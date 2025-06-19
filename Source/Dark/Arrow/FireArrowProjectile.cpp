@@ -3,7 +3,6 @@
 
 #include "FireArrowProjectile.h"
 
-#include "Dark/InteractObjects/EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/IReactive.h"
 
 AFireArrowProjectile::AFireArrowProjectile()
@@ -21,7 +20,7 @@ void AFireArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, Hit); 
 			}
 		}
 	}
@@ -38,7 +37,7 @@ void AFireArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedCompone
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, SweepResult); 
 			}
 		}
 	}

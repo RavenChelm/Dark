@@ -2,8 +2,7 @@
 
 
 #include "ElectrificableObjectComponent.h"
-
-#include "EElementalType.h"
+#include "Dark/Hands/FCustomDamageType.h"
 #include "Interfaces/IElectricSubObject.h"
 #include "Interfaces/IInteractable.h"
 

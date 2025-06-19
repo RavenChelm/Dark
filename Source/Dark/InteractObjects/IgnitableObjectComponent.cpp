@@ -3,7 +3,7 @@
 
 #include "IgnitableObjectComponent.h"
 
-#include "EElementalType.h"
+#include "Dark/Hands/FCustomDamageType.h"
 #include "Particles/ParticleSystemComponent.h" 
 
 UIgnitableObjectComponent::UIgnitableObjectComponent(): FlameParticleComponent(nullptr)

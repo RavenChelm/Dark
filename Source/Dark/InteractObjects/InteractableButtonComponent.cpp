@@ -2,7 +2,7 @@
 
 #include "InteractableButtonComponent.h"
 
-#include "EElementalType.h"
+#include "Dark/Hands/FCustomDamageType.h"
 #include "Dark/InteractObjects/Interfaces/ISwitchControllable.h"
 #include "Components/TimelineComponent.h"
 

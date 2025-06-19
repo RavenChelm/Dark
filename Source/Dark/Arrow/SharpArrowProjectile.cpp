@@ -3,7 +3,6 @@
 
 #include "SharpArrowProjectile.h"
 
-#include "Dark/InteractObjects/EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/IReactive.h"
 
 
@@ -28,14 +27,14 @@ void ASharpArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 {
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
 
-	if (OtherActor && OtherActor != this && OtherComp != nullptr){
-
+	if (OtherActor && OtherActor != this && OtherComp != nullptr)
+	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Hit Sharp Arrow"));
 		if (TArray<UActorComponent*> Components = OtherActor->GetComponentsByInterface(UReactive::StaticClass()); Components.Num() > 0)
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, Hit); 
 			}
 		}
 	}
@@ -53,7 +52,7 @@ void ASharpArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedCompon
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, SweepResult); 
 			}
 		}
 	}

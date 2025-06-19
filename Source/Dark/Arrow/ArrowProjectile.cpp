@@ -4,8 +4,12 @@
 #include "ArrowProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Dark/InteractObjects/Interfaces/IDamageable.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/GameEngine.h"
+
+#define SURFACE_Wood EPhysicalSurface::SurfaceType1
+#define SURFACE_Metal EPhysicalSurface::SurfaceType2
 
 AArrowProjectile::AArrowProjectile()
 {
@@ -49,20 +53,42 @@ void AArrowProjectile::BeginPlay()
 void AArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     if (!bWasLaunched) return;
-
-    AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
-    
-    ProjectileMovement->StopMovementImmediately();
-    CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get());
+    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("%s"), *UEnum::GetValueAsString(SurfaceType)));
+        
+    if (Hit.PhysMaterial.IsValid())
+    {
+        if(SurfaceType == SURFACE_Metal)
+        {
+            Destroy();
+            return;
+        }
+        if(SurfaceType == SURFACE_Wood)
+        {
+            AttachToActor(OtherActor, FAttachmentTransformRules::KeepWorldTransform);
+            ProjectileMovement->StopMovementImmediately();
+            CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        }
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("PM is not valid"));
+    }
 
     if (GetWorld())
     {
-        UGameplayStatics::SpawnEmitterAtLocation(
-            GetWorld(),
-            ImpactEffect,
-            GetActorLocation(),
-            GetActorRotation()
-        );
+        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, GetActorLocation(), GetActorRotation());
+    }
+    
+    if (OtherActor && OtherActor != this && OtherComp != nullptr)
+    {
+        if (TArray<UActorComponent*> Components = OtherActor->GetComponentsByInterface(UDamageable::StaticClass()); Components.Num() > 0)
+        {
+            for (UActorComponent* Comp : Components)
+            {
+                IDamageable::Execute_ApplyDamage(Comp, nullptr, this, ArrowType); // TODO:: Не будет ли вызываться в этом моменте не изменённая версия ArrowType?
+            }
+        }
     }
 }
 

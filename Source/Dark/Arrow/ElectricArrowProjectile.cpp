@@ -3,7 +3,6 @@
 
 #include "ElectricArrowProjectile.h"
 
-#include "Dark/InteractObjects/EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/IReactive.h"
 
 
@@ -35,7 +34,7 @@ void AElectricArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* Other
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, Hit); 
 			}
 		}
 	}
@@ -45,14 +44,14 @@ void AElectricArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedCom
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-	if (OtherActor && OtherActor != this && OtherComp != nullptr){
-
+	if (OtherActor && OtherActor != this && OtherComp != nullptr)
+	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Overlap Electric Arrow"));
 		if (TArray<UActorComponent*> Components = OtherActor->GetComponentsByInterface(UReactive::StaticClass()); Components.Num() > 0)
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, SweepResult); 
 			}
 		}
 	}

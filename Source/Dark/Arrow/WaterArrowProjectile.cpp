@@ -4,17 +4,13 @@
 #include "WaterArrowProjectile.h"
 
 #include "Engine/OverlapResult.h"
-#include "Dark/InteractObjects/EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/IReactive.h"
 #include "Particles/ParticleSystemComponent.h"
 
 void AWaterArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::OnHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
-	if (WaterSplashParticleComponent)
-	{
-		WaterSplashParticleComponent->Activate();
-	}
+
 	if (OtherActor && OtherActor != this && OtherComp != nullptr)
 	{
 		bool bReactStatus = false;
@@ -23,7 +19,7 @@ void AWaterArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				if (IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit) && !bReactStatus)
+				if (IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, Hit) && !bReactStatus)
 				{
 					bReactStatus = true;
 				}
@@ -50,7 +46,7 @@ void AWaterArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedCompon
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, SweepResult); 
 			}
 		}
 	}

@@ -4,7 +4,6 @@
 #include "BluntArrowProjectile.h"
 #include "../DarkCharacter.h"
 #include "Dark/Hands/CrossbowSkeletalMeshComponent.h"
-#include "Dark/InteractObjects/EElementalType.h"
 #include "Dark/InteractObjects/Interfaces/IReactive.h"
 #include "Engine/GameEngine.h"
 
@@ -20,7 +19,7 @@ void ABluntArrowProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, Hit); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, Hit); 
 			}
 		}
 	}
@@ -37,7 +36,7 @@ void ABluntArrowProjectile::OnOverlapBegin(UPrimitiveComponent* OverlappedCompon
 		{
 			for (UActorComponent* Comp : Components)
 			{
-				IReactive::Execute_ReactToElement(Comp, CurrentElement, this, SweepResult); 
+				IReactive::Execute_ReactToElement(Comp, ArrowType.ElementalType, this, SweepResult); 
 			}
 		}
 	}

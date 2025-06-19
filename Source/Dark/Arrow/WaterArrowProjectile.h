@@ -21,8 +21,6 @@ public:
 	void SpawnWaterPuddle(const FHitResult& Hit);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UParticleSystemComponent* WaterSplashParticleComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<class AActor> WaterPuddle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
