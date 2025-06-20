@@ -10,7 +10,7 @@
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
 #include "Hands/CrossbowSkeletalMeshComponent.h"
-#include "Hands/SwordSkeletalMeshComponent.h"
+#include "Hands/ElectricGauntletSkeletalMeshComponent.h"
 #include "Hands/HandsControllerComponent.h"
 #include "MovementSystem/CustomCharacterMovementComponent.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
@@ -54,12 +54,12 @@ ADarkCharacter::ADarkCharacter(const FObjectInitializer& ObjectInitializer) :
 	CrossbowComponent->CastShadow = false;
 	CrossbowComponent->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
-	SwordComponent = CreateDefaultSubobject<USwordSkeletalMeshComponent>(TEXT("SwordComponent"));
-	SwordComponent->SetOnlyOwnerSee(true);
-	SwordComponent->SetupAttachment(FirstPersonCameraComponent);
-	SwordComponent->bCastDynamicShadow = false;
-	SwordComponent->CastShadow = false;
-	SwordComponent->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
+	GauntletComponent = CreateDefaultSubobject<UElectricGauntletSkeletalMeshComponent>(TEXT("SwordComponent"));
+	GauntletComponent->SetOnlyOwnerSee(true);
+	GauntletComponent->SetupAttachment(FirstPersonCameraComponent);
+	GauntletComponent->bCastDynamicShadow = false;
+	GauntletComponent->CastShadow = false;
+	GauntletComponent->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 	
 	// Get a MovementComponent
 	CustomCharacterMovementComponent = Cast<UCustomCharacterMovementComponent>(GetCharacterMovement());
@@ -91,16 +91,22 @@ void ADarkCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ADarkCharacter::StopJumping);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ADarkCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADarkCharacter::Look);
+		
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ADarkCharacter::StartSprint); 
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ADarkCharacter::StopSprint);
+		
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ADarkCharacter::StartCrouch);
+		
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &ADarkCharacter::StartAttack);
+		
+		EnhancedInputComponent->BindAction(ChargeAction, ETriggerEvent::Started, this, &ADarkCharacter::StartCharge);
+		EnhancedInputComponent->BindAction(ChargeAction, ETriggerEvent::Completed, this, &ADarkCharacter::ReleaseCharge);
+
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ADarkCharacter::StartInteract);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ADarkCharacter::ReleaseInteract);
 		
 		EnhancedInputComponent->BindAction(RadialMenuAction, ETriggerEvent::Started, this, &ADarkCharacter::RadialMenuPressed);
 		EnhancedInputComponent->BindAction(RadialMenuAction, ETriggerEvent::Completed, this, &ADarkCharacter::RadialMenuReleased);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADarkCharacter::Look);
 	}
 	else
 	{
@@ -160,7 +166,14 @@ void ADarkCharacter::StartAttack()
 {
 	OnAttack.Broadcast();
 }
-
+void ADarkCharacter::StartCharge()
+{
+	OnStartCharge.Broadcast();
+}
+void ADarkCharacter::ReleaseCharge()
+{
+	OnReleaseCharge.Broadcast();
+}
 void ADarkCharacter::Jump()
 {
 	OnJumpStart.Broadcast();

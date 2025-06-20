@@ -96,9 +96,25 @@ void UCrossbowSkeletalMeshComponent::Attack_Implementation()
 	}
 }
 
-void UCrossbowSkeletalMeshComponent::Equip_Implementation()
+void UCrossbowSkeletalMeshComponent::Equip_Implementation(const bool State)
 {
-	IWeapon::Equip_Implementation();
+	SetupAttachment(Cast<ADarkCharacter>(GetOwner())->GetFirstPersonCameraComponent());
+	SetVisibility(State);
+}
+
+void UCrossbowSkeletalMeshComponent::StartCharge_Implementation()
+{
+	IWeapon::StartCharge_Implementation();
+}
+
+void UCrossbowSkeletalMeshComponent::Charge_Implementation(float DeltaTime)
+{
+	IWeapon::Charge_Implementation(DeltaTime);
+}
+
+void UCrossbowSkeletalMeshComponent::EndCharge_Implementation()
+{
+	IWeapon::EndCharge_Implementation();
 }
 
 void UCrossbowSkeletalMeshComponent::SwitchArrowType(EArrowType NewType)

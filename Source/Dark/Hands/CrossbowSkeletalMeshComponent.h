@@ -44,7 +44,10 @@ class DARK_API UCrossbowSkeletalMeshComponent : public USkeletalMeshComponent, p
 public:
 	UCrossbowSkeletalMeshComponent();
 	virtual void Attack_Implementation() override;
-	virtual void Equip_Implementation() override;
+	virtual void Equip_Implementation(const bool State) override;
+	virtual void StartCharge_Implementation() override;
+	virtual void Charge_Implementation(float DeltaTime) override;
+	virtual void EndCharge_Implementation() override;
 	UFUNCTION(BlueprintCallable)
 	bool AddAmmunition(EArrowType Type, int32 AmmoCount);
 	

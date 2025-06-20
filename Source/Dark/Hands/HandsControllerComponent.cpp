@@ -8,8 +8,8 @@
 #include "Dark/InteractObjects/Interfaces/IThrowable.h"
 #include "Dark/InteractObjects/Interfaces/ILongInteractable.h"
 #include "Dark/InteractObjects/Interfaces/ILongInteractableSync.h"
-#include "Dark/Hands/CrossbowSkeletalMeshComponent.h" //need for Character->GetCrossbowComponent()
-#include "Dark/Hands/SwordSkeletalMeshComponent.h"
+#include "Dark/Hands/CrossbowSkeletalMeshComponent.h"
+#include "Dark/Hands/ElectricGauntletSkeletalMeshComponent.h"
 #include "Dark/DarkCharacter.h"
 
 UHandsControllerComponent::UHandsControllerComponent()
@@ -27,9 +27,18 @@ void UHandsControllerComponent::BeginPlay()
 		Character->OnInteract.AddDynamic(this, &UHandsControllerComponent::StartInteract);
 		Character->OnReleaseInteract.AddDynamic(this, &UHandsControllerComponent::ExecuteInteract);
 		Character->OnAttack.AddDynamic(this, &UHandsControllerComponent::StartAttack);
-		ActiveWeapon = Character->GetCrossbowComponent();
+		Character->OnStartCharge.AddDynamic(this, &UHandsControllerComponent::StartCharge);
+		Character->OnReleaseCharge.AddDynamic(this, &UHandsControllerComponent::EndCharge);
+		
+		Crossbow = Character->GetCrossbowComponent();
+		Gauntlet = Character->GetGauntletComponent();
+		
+		Crossbow->Equip_Implementation(false);
+		Gauntlet->Equip_Implementation(false);
+		
 		Camera = Character->GetFirstPersonCameraComponent();
 	}
+	
 }
 
 
@@ -50,8 +59,12 @@ void UHandsControllerComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		}
 		else if (InteractActor.IsValid())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Reset Objects"));
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green, TEXT("Reset Interact Object"));
 			InteractActor.Reset();
+		}
+		if (bCharging)
+		{
+			Charge(DeltaTime);
 		}
 		break;
 	case EHandsMode::Item_Interact: 
@@ -115,6 +128,12 @@ void UHandsControllerComponent::ExecuteLongInteract() const
 		}
 	}
 }
+void UHandsControllerComponent::CancelInteract()
+{
+	CurrentMode = EHandsMode::Empty;
+	InteractActor.Reset();
+	CurrentInteractionTime = 0;
+}
 
 void UHandsControllerComponent::StartLongSyncInteraction() const
 {
@@ -161,13 +180,6 @@ void UHandsControllerComponent::CancelLongSyncInteract() const
 	}
 }
 
-void UHandsControllerComponent::CancelInteract()
-{
-	CurrentMode = EHandsMode::Empty;
-	InteractActor.Reset();
-	CurrentInteractionTime = 0;
-}
-
 void UHandsControllerComponent::StartAttack()
 {
 	if (HoldActor.IsValid())
@@ -179,75 +191,90 @@ void UHandsControllerComponent::StartAttack()
 			HoldActor.Reset();
 		}
 	}
-	else
+	else if (ActiveWeapon)
 	{
 		ActiveWeapon->Attack_Implementation();
 	}
 }
 
+void UHandsControllerComponent::StartCharge()
+{
+	if (!HoldActor.IsValid() && ActiveWeapon)
+	{
+		ActiveWeapon->StartCharge_Implementation();
+		bCharging = true;
+	}
+}
+void UHandsControllerComponent::Charge(float DeltaTime)
+{
+	if (!HoldActor.IsValid() && ActiveWeapon)
+	{
+		ActiveWeapon->Charge_Implementation(DeltaTime);
+	}
+}
+void UHandsControllerComponent::EndCharge()
+{
+	if (!HoldActor.IsValid() && ActiveWeapon)
+	{
+		ActiveWeapon->EndCharge_Implementation();
+		bCharging = false;
+	}
+}
+
 void UHandsControllerComponent::SwitchCurrenTool(int ToolNumber)
 {
-	UCrossbowSkeletalMeshComponent* Crossbow = Character->GetCrossbowComponent();
 	switch (ToolNumber)
 	{
 	case 0:
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Sword"));
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Gauntlet"));
+		Equip(Gauntlet);
 		break;
 	case 1:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Sharp Arrow"));
-		if (ActiveWeapon != Crossbow)
-		{
-			ActiveWeapon = Crossbow;
-			ActiveWeapon->Equip_Implementation();
-		}
-		Crossbow->SwitchArrowType(EArrowType::Sharp);
+		Equip(Crossbow, EArrowType::Sharp);
 		break;
 	case 2:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Fire Arrow"));
-		if (ActiveWeapon != Crossbow)
-		{
-			ActiveWeapon = Crossbow;
-			ActiveWeapon->Equip_Implementation();
-		}
-		Crossbow->SwitchArrowType(EArrowType::Fire);
+		Equip(Crossbow, EArrowType::Fire);
 		break;
 	case 3:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Water Arrow"));
-		if (ActiveWeapon != Crossbow)
-		{
-			ActiveWeapon = Crossbow;
-			ActiveWeapon->Equip_Implementation();
-		}
-		Crossbow->SwitchArrowType(EArrowType::Water);
+		Equip(Crossbow, EArrowType::Water);
 		break;
 	case 4:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Electric Arrow"));
-		if (ActiveWeapon != Crossbow)
-		{
-			ActiveWeapon = Crossbow;
-			ActiveWeapon->Equip_Implementation();
-		}
-		Crossbow->SwitchArrowType(EArrowType::Electric);
+		Equip(Crossbow, EArrowType::Electric);
 		break;
 	case 5:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Grappling hook"));
-		
 		break;
 	case 6:
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Smoke Bomb"));
 		break;
 	case 7:
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Selected Crossbow: Blunt Arrow"));
-		if (ActiveWeapon != Crossbow)
-		{
-			ActiveWeapon = Crossbow;
-			ActiveWeapon->Equip_Implementation();
-		}
-		Crossbow->SwitchArrowType(EArrowType::Blunt);
+		Equip(Crossbow, EArrowType::Blunt);
 		break;
 	}
 }
 
+void UHandsControllerComponent::Equip(const TScriptInterface<IWeapon>& Weapon, const EArrowType ArrowType)
+{
+	if (!ActiveWeapon)
+	{
+		ActiveWeapon = Weapon;
+		ActiveWeapon->Equip_Implementation(true);
+	}
+	else if (ActiveWeapon != Weapon)
+	{
+		ActiveWeapon->Equip_Implementation(false);
+		ActiveWeapon = Weapon;
+		ActiveWeapon->Equip_Implementation(true);
+	}
+	if (ActiveWeapon == Crossbow)
+	{
+		Crossbow->SwitchArrowType(ArrowType);
+	}
+}
 
 void UHandsControllerComponent::SwitchInteractionPrompt(bool Switcher)
 {

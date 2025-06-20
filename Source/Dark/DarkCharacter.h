@@ -17,7 +17,7 @@ class UInputMappingContext;
 class UPhysicsHandleComponent;
 class UCustomCharacterMovementComponent;
 class UHandsControllerComponent;
-class USwordSkeletalMeshComponent;
+class UElectricGauntletSkeletalMeshComponent;
 class UCrossbowSkeletalMeshComponent;
 struct FInputActionValue;
 
@@ -56,6 +56,8 @@ class ADarkCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ChargeAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* RadialMenuAction;
 	
 	/** Custom Movement Component */
@@ -76,7 +78,7 @@ class ADarkCharacter : public ACharacter
 
 	/** Sword Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hands", meta = (AllowPrivateAccess = "true"))
-	USwordSkeletalMeshComponent* SwordComponent;
+	UElectricGauntletSkeletalMeshComponent* GauntletComponent;
 
 	/** Radial Menu Component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
@@ -95,7 +97,9 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRadialMenuActionPressed);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnRadialMenuActionReleased);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMouseInput);
-
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStartCharge);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnReleaseCharge);
+	
 	UPROPERTY(BlueprintAssignable)
 	FOnSprintStart OnSprintStart;
 	UPROPERTY(BlueprintAssignable)
@@ -116,6 +120,11 @@ public:
 	FOnRadialMenuActionReleased OnRadialMenuActionReleased;
 	UPROPERTY(BlueprintAssignable)
 	FOnMouseInput OnMouseInput;
+	UPROPERTY(BlueprintAssignable)
+	FOnStartCharge OnStartCharge;
+	UPROPERTY(BlueprintAssignable)
+	FOnReleaseCharge OnReleaseCharge;
+	
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -125,6 +134,8 @@ protected:
 	void StopSprint();
 	void StartCrouch();
 	void StartAttack();
+	void StartCharge();
+	void ReleaseCharge();
 	virtual void Jump() override;
 	virtual void StopJumping() override;
 	void RadialMenuPressed();
@@ -145,6 +156,6 @@ public:
 	UHandsControllerComponent* GetHandsController() const { return HandsController; };
 	USceneComponent* GetGrabPoint() const { return GrabPoint; };
 	UCrossbowSkeletalMeshComponent* GetCrossbowComponent() const {return CrossbowComponent;};
-	USwordSkeletalMeshComponent* GetSwordComponent() const {return SwordComponent;};
+	UElectricGauntletSkeletalMeshComponent* GetGauntletComponent() const {return GauntletComponent;};
 };
 

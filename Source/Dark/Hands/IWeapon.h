@@ -24,5 +24,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
 	void Attack();
 	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
-	void Equip();
+	void Equip(const bool State);
+	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
+	void StartCharge();
+	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
+	void Charge(float DeltaTime);
+	UFUNCTION(BlueprintNativeEvent, Category = "Attack")
+	void EndCharge();
 };

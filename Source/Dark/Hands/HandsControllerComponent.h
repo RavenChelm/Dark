@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "CrossbowSkeletalMeshComponent.h"
 #include "HandsControllerComponent.generated.h"
 
+class UElectricGauntletSkeletalMeshComponent;
 class IWeapon;
 class IThrowable;
 class IInteractable;
@@ -33,10 +35,16 @@ class DARK_API UHandsControllerComponent : public UActorComponent
 	TWeakObjectPtr<AActor> HoldActor;
 	UPROPERTY()
 	TWeakObjectPtr<UObject> InteractObject;
+	UPROPERTY()
+	UCrossbowSkeletalMeshComponent* Crossbow;
+	UPROPERTY()
+	UElectricGauntletSkeletalMeshComponent* Gauntlet;
 	
 	EHandsMode CurrentMode = EHandsMode::Empty;
 	float CurrentInteractionTime = 0.f;
-	
+	bool bCharging = false;
+	float CurrentChargingTime = 0.0f;
+	float ChargingTime = 1.f; 
 public:
 	//BASE
 	UHandsControllerComponent();
@@ -67,13 +75,21 @@ public:
 	
 	UFUNCTION()
 	void StartAttack();
-	
+	UFUNCTION()
+	void StartCharge();
+	UFUNCTION()
+	void Charge(float DeltaTime);
+	UFUNCTION()
+	void EndCharge();
+
 	UFUNCTION()
 	void SetHoldActor(AActor* Object) {HoldActor = Object;}
-
-
+	
 	UFUNCTION(BlueprintCallable)
 	void SwitchCurrenTool(int ToolNumber);
+	void Equip(const TScriptInterface<IWeapon>& Weapon, EArrowType ArrowType = EArrowType::Blunt);
+
+
 	//Fields
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TScriptInterface<IWeapon> ActiveWeapon;
